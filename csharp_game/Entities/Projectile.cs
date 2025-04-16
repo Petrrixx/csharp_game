@@ -16,7 +16,7 @@ public class Projectile
     public Projectile(Vector2 startPosition, Vector2 direction)
     {
         Position = startPosition;
-        Direction = Vector2.Normalize(direction);
+        Direction = Vector2.Normalize(direction);  // Normalize direction for consistent speed
     }
 
     public void Update(float deltaTime)

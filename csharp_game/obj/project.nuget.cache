@@ -1,11 +1,11 @@
 {
   "version": 2,
-  "dgSpecHash": "aDykRLUh4vU=",
+  "dgSpecHash": "n2vDYrv3g8M=",
   "success": true,
-  "projectFilePath": "/Users/peterbolecek/Documents/VSCode/csharp_game/csharp_game/csharp_game.csproj",
+  "projectFilePath": "C:\\Users\\peter\\Downloads\\csharp_game\\csharp_game\\csharp_game.csproj",
   "expectedPackageFiles": [
-    "/Users/peterbolecek/.nuget/packages/raylib-cs/4.5.0.2/raylib-cs.4.5.0.2.nupkg.sha512",
-    "/Users/peterbolecek/.nuget/packages/system.numerics.vectors/4.5.0/system.numerics.vectors.4.5.0.nupkg.sha512"
+    "C:\\Users\\peter\\.nuget\\packages\\raylib-cs\\4.5.0.2\\raylib-cs.4.5.0.2.nupkg.sha512",
+    "C:\\Users\\peter\\.nuget\\packages\\system.numerics.vectors\\4.5.0\\system.numerics.vectors.4.5.0.nupkg.sha512"
   ],
   "logs": []
 }

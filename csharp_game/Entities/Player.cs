@@ -5,14 +5,15 @@ namespace VampireSurvivorsClone.Entities;
 
 public class Player
 {
-    public Vector2 Position { get; private set; }
+    public Vector2 Position { get; set; }
     private float speed = 200f;
     private int size = 32;
-    private List<Projectile> projectiles = new();
     private float fireCooldown = 0.5f;
     private float fireTimer = 0f;
-    public int Health { get; private set; } = 5;
+    private int health= 5;
 
+    public int Health {get => health; set => health = value; }  // Property for health
+    private List<Projectile> projectiles = new();
 
     public Player()
     {
@@ -25,7 +26,10 @@ public class Player
     public void TakeDamage(int amount)
     {
         Health -= amount;
+        if (Health < 0) Health = 0;  // Prevent health from going below 0
     }
+
+    public Vector2 FacingDirection { get; private set; } = new Vector2(0, -1);  // Default: facing upwards
 
     public void Update()
     {
@@ -40,6 +44,7 @@ public class Player
         {
             direction = Vector2.Normalize(direction);
             Position += direction * speed * Raylib.GetFrameTime();
+            FacingDirection = direction;  // Update facing direction
         }
 
         // Auto-fire logic
@@ -58,14 +63,28 @@ public class Player
 
         // Remove dead ones
         projectiles.RemoveAll(p => !p.IsAlive);
+
+        // Check for game over if health <= 0
+        if (Health <= 0)
+        {
+            // Display Game Over screen and exit
+            Raylib.BeginDrawing();
+            Raylib.ClearBackground(Color.BLACK);
+            Raylib.DrawText("GAME OVER", 520, 360, 50, Color.RED);
+            Raylib.EndDrawing();
+            System.Threading.Thread.Sleep(2000);  // Wait 2 seconds before quitting
+            Raylib.CloseWindow();  // Close the window
+            System.Environment.Exit(0);  // Exit the game
+        }
     }
 
-    private void FireProjectile()
-    {
-        var start = new Vector2(Position.X + size / 2, Position.Y);
-        var dir = new Vector2(0, -1); // Straight up
-        projectiles.Add(new Projectile(start, dir));
-    }
+   private void FireProjectile()
+{
+    var start = new Vector2(Position.X + size / 2, Position.Y);
+    // Use the player's facing direction to fire the projectile
+    projectiles.Add(new Projectile(start, FacingDirection));
+}
+
 
     public void Draw()
     {
