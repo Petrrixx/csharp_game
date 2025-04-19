@@ -18,12 +18,25 @@ public class Game
     private int waveNumber = 1;
     private float spawnChance = 0.1f;
     private bool isWaveChanging = false;  // To track if wave change is happening
+    private int sizeW;
+    private int sizeH;
+    private Camera2D camera;
 
-
-    public Game()
+    public Game(int sizeW, int sizeH)
     {
+        this.sizeH = sizeH;
+        this.sizeW = sizeW;
+
         player = new Player();
         gameTimer = new Timer();
+
+        camera = new Camera2D {
+            target = player.Position,
+            offset = new Vector2(sizeW / 2, sizeH / 2),
+            rotation = 0.0f,
+            zoom = 1.0f
+        };
+
         // Spawn 1 starter enemy
         SpawnEnemy();
     }
@@ -50,7 +63,7 @@ public class Game
             enemies.Clear();
 
             // Reset player position to the center of the screen
-            player.Position = new Vector2(1280 / 2, 720 / 2);
+            player.Position = new Vector2(sizeW / 2, sizeH / 2); // Reset player position to center using defined window sizes
 
             // Display wave transition
             DisplayWaveTransition();
@@ -125,12 +138,35 @@ public class Game
 
         // Remove dead enemies
         enemies.RemoveAll(e => !e.IsAlive);
+
+         // Toggle fullscreen on key press (F11)
+        if (Raylib.IsKeyPressed(KeyboardKey.KEY_F11))
+        {
+            Raylib.ToggleFullscreen();
+        }
+
+        // Update the camera target to follow the player
+        camera.target = player.Position;
+
+        // Adjust the camera position if it's in fullscreen mode
+        if (Raylib.IsWindowFullscreen())
+        {
+            // Calculate the center of the screen based on the current window size
+            camera.offset = new Vector2(Raylib.GetScreenWidth() / 2, Raylib.GetScreenHeight() / 2);
+        }
+        else
+        {
+            // Set the camera offset to the center of the window
+            camera.offset = new Vector2(sizeW / 2, sizeH / 2);
+        }
     }
 
     public void Draw()
     {
         Raylib.BeginDrawing();
         Raylib.ClearBackground(Color.DARKGRAY);
+
+        Raylib.BeginMode2D(camera); // Start 2D mode with camera
 
         // Display timer countdown in the top-right corner
         Raylib.DrawText($"Time: {Math.Ceiling(gameTimer.TimeRemaining)}", 1150, 10, 20, Color.RED);
@@ -149,15 +185,34 @@ public class Game
         // Display current wave
         Raylib.DrawText($"Wave {waveNumber}", 10, 10, 30, Color.LIME);
 
+        Raylib.EndMode2D();
+
         Raylib.EndDrawing();
     }
 
+    // ERROR - unhandled exception - rand(minvalue exceeds maxvalue)
+    // This method spawns an enemy at a random position outside the player's view
     private void SpawnEnemy()
     {
         Random rand = new();
-        float x = rand.Next(0, 1280);
-        float y = rand.Next(0, 720);
-        enemies.Add(new Enemy(new Vector2(x, y)));
+
+        // Set the minimum spawn distance from the player to 10% of the screen size (but at least 1000 pixels)
+        float minOffset = Math.Max(1000, Math.Min(sizeW, sizeH) * 0.1f);  // 10% of the smaller dimension, but no less than 1000 pixels
+        
+        // Set the maximum spawn offset to the full screen size
+        float maxOffsetX = sizeW;
+        float maxOffsetY = sizeH;
+
+        // Randomly choose the spawn offset within valid limits
+        float offsetX = rand.Next((int)minOffset, (int)maxOffsetX);  // X offset for spawning
+        float offsetY = rand.Next((int)minOffset, (int)maxOffsetY);  // Y offset for spawning
+
+        // Randomly decide spawn direction (left/right and top/bottom relative to the player)
+        float spawnX = player.Position.X + (rand.Next(0, 2) == 0 ? 1 : -1) * offsetX;
+        float spawnY = player.Position.Y + (rand.Next(0, 2) == 0 ? 1 : -1) * offsetY;
+
+        // Add the enemy to the list with the calculated spawn position
+        enemies.Add(new Enemy(new Vector2(spawnX, spawnY)));
     }
 
     private bool RandomSpawnCheck()
