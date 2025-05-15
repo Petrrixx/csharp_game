@@ -6,16 +6,15 @@ public class Program
 {
     public static void Main()
     {
-        //TODO: Add a splash screen
         // Get the user's screen resolution
-        var screenWidth = Screen.PrimaryScreen.Bounds.Width;  // Get screen width
-        var screenHeight = Screen.PrimaryScreen.Bounds.Height; // Get screen height
+        var screenWidth = 1280;  // Get screen width
+        var screenHeight = 720; // Get screen height
 
         // Set the window size to the screen resolution
         Raylib.InitWindow(screenWidth, screenHeight, "Vampire Survivors Clone");
 
         // Optionally enable fullscreen by default
-        Raylib.ToggleFullscreen();  // Enable fullscreen mode
+        //Raylib.ToggleFullscreen();  // Enable fullscreen mode
 
         // Create a new game with the screen size
         Game game = new Game(screenWidth, screenHeight);

@@ -1,32 +1,58 @@
-using Raylib_cs;
+using System;
 using System.Numerics;
+using Raylib_cs;
+using VampireSurvivorsClone.Engine;
 
-namespace VampireSurvivorsClone.Entities;
-
-public class Projectile
+namespace VampireSurvivorsClone.Entities
 {
-    public Vector2 Position;
-    public Vector2 Direction;
-    public float Speed = 400f;
-    public float Lifetime = 2f;
-    public bool IsAlive => Lifetime > 0;
-
-    private float size = 6f;
-
-    public Projectile(Vector2 startPosition, Vector2 direction)
+    public class Projectile
     {
-        Position = startPosition;
-        Direction = Vector2.Normalize(direction);  // Normalize direction for consistent speed
-    }
+        public Vector2 Position;
+        public Vector2 Direction;
+        public float Speed;
+        public float Lifetime;
+        public bool IsAlive => Lifetime > 0;
 
-    public void Update(float deltaTime)
-    {
-        Position += Direction * Speed * deltaTime;
-        Lifetime -= deltaTime;
-    }
+        private float Size;
+        private float Damage;
+        private ProjectileType Type;
 
-    public void Draw()
-    {
-        Raylib.DrawRectangle((int)Position.X, (int)Position.Y, (int)size, (int)size, Color.YELLOW);
+        public Projectile(Vector2 startPosition, Vector2 direction, ProjectileType type)
+        {
+            var data = ProjectileData.GetProjectileData(type);
+            Position = startPosition;
+            Direction = Vector2.Normalize(direction);
+            Speed = data.Speed;
+            Lifetime = data.Lifetime;
+            Size = data.Size;
+            Damage = data.Damage;
+            Type = type;
+        }
+
+        public void Update(float deltaTime)
+        {
+            if (Type == ProjectileType.Homing)
+            {
+                // Add homing behavior: Make the projectile seek the player or enemies
+                // For now, let's assume we just point it in the direction of the target
+            }
+
+            Position += Direction * Speed * deltaTime;
+            Lifetime -= deltaTime;
+        }
+
+        public void Draw()
+        {
+            Color color = Type switch
+            {
+                ProjectileType.Normal => Color.YELLOW,
+                ProjectileType.Homing => Color.GREEN,
+                ProjectileType.Explosive => Color.RED,
+                ProjectileType.Piercing => Color.BLUE,
+                _ => Color.YELLOW
+            };
+
+            Raylib.DrawRectangle((int)Position.X, (int)Position.Y, (int)Size, (int)Size, color);
+        }
     }
 }

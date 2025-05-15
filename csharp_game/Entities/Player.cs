@@ -7,10 +7,10 @@ public class Player
 {
     public Vector2 Position { get; set; }
     private float speed = 200f;
-    private int size = 32;
-    private float fireCooldown = 0.5f;
-    private float fireTimer = 0f;
-    private int health= 5;
+    private int size = 32; 
+    private float fireCooldown = 0.5f; // Cooldown time in seconds
+    private float fireTimer = 0f; // Timer for firing projectiles
+    private int health= 5; // Player's health
 
     public int Health {get => health; set => health = value; }  // Property for health
     private List<Projectile> projectiles = new();
@@ -33,12 +33,7 @@ public class Player
 
     public void Update()
     {
-        Vector2 direction = Vector2.Zero;
-
-        if (Raylib.IsKeyDown(KeyboardKey.KEY_W)) direction.Y -= 1;
-        if (Raylib.IsKeyDown(KeyboardKey.KEY_S)) direction.Y += 1;
-        if (Raylib.IsKeyDown(KeyboardKey.KEY_A)) direction.X -= 1;
-        if (Raylib.IsKeyDown(KeyboardKey.KEY_D)) direction.X += 1;
+        Vector2 direction = Input.GetMovementDirection();
 
         if (direction != Vector2.Zero)
         {
@@ -78,12 +73,12 @@ public class Player
         }
     }
 
-   private void FireProjectile()
-{
-    var start = new Vector2(Position.X + size / 2, Position.Y);
-    // Use the player's facing direction to fire the projectile
-    projectiles.Add(new Projectile(start, FacingDirection));
-}
+    private void FireProjectile()
+    {
+        var start = new Vector2(Position.X + size / 2, Position.Y);
+        // Use the player's facing direction to fire the projectile
+        projectiles.Add(new Projectile(start, FacingDirection, ProjectileType.Normal));
+    }
 
 
     public void Draw()

@@ -190,28 +190,45 @@ public class Game
         Raylib.EndDrawing();
     }
 
-    // ERROR - unhandled exception - rand(minvalue exceeds maxvalue)
     // This method spawns an enemy at a random position outside the player's view
     private void SpawnEnemy()
     {
         Random rand = new();
 
-        // Set the minimum spawn distance from the player to 10% of the screen size (but at least 1000 pixels)
-        float minOffset = Math.Max(1000, Math.Min(sizeW, sizeH) * 0.1f);  // 10% of the smaller dimension, but no less than 1000 pixels
-        
-        // Set the maximum spawn offset to the full screen size
-        float maxOffsetX = sizeW;
-        float maxOffsetY = sizeH;
+        // Hardcoded screen size for optimization
+        int screenW = 1280;
+        int screenH = 720;
 
-        // Randomly choose the spawn offset within valid limits
-        float offsetX = rand.Next((int)minOffset, (int)maxOffsetX);  // X offset for spawning
-        float offsetY = rand.Next((int)minOffset, (int)maxOffsetY);  // Y offset for spawning
+        // Set minimum and maximum spawn offsets
+        int minOffset = 200; // Minimum distance from player (in pixels)
+        int maxOffsetX = screenW / 2 + 100; // Spawn just outside the visible area horizontally
+        int maxOffsetY = screenH / 2 + 100; // Spawn just outside the visible area vertically
 
-        // Randomly decide spawn direction (left/right and top/bottom relative to the player)
-        float spawnX = player.Position.X + (rand.Next(0, 2) == 0 ? 1 : -1) * offsetX;
-        float spawnY = player.Position.Y + (rand.Next(0, 2) == 0 ? 1 : -1) * offsetY;
+        // Randomly choose a side: 0=left, 1=right, 2=top, 3=bottom
+        int side = rand.Next(0, 4);
+        float spawnX = player.Position.X;
+        float spawnY = player.Position.Y;
 
-        // Add the enemy to the list with the calculated spawn position
+        switch (side)
+        {
+            case 0: // Left
+                spawnX -= rand.Next(minOffset, maxOffsetX);
+                spawnY += rand.Next(-maxOffsetY, maxOffsetY);
+                break;
+            case 1: // Right
+                spawnX += rand.Next(minOffset, maxOffsetX);
+                spawnY += rand.Next(-maxOffsetY, maxOffsetY);
+                break;
+            case 2: // Top
+                spawnX += rand.Next(-maxOffsetX, maxOffsetX);
+                spawnY -= rand.Next(minOffset, maxOffsetY);
+                break;
+            case 3: // Bottom
+                spawnX += rand.Next(-maxOffsetX, maxOffsetX);
+                spawnY += rand.Next(minOffset, maxOffsetY);
+                break;
+        }
+
         enemies.Add(new Enemy(new Vector2(spawnX, spawnY)));
     }
 
