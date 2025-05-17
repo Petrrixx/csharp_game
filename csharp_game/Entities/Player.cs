@@ -1,5 +1,6 @@
 using Raylib_cs;
 using System.Numerics;
+using VampireSurvivorsClone.Data;
 
 namespace VampireSurvivorsClone.Entities;
 
@@ -10,10 +11,21 @@ public class Player
     private int size = 32; 
     private float fireCooldown = 0.5f; // Cooldown time in seconds
     private float fireTimer = 0f; // Timer for firing projectiles
-    private int health= 5; // Player's health
-
-    public int Health {get => health; set => health = value; }  // Property for health
+    private int health= 50; // Player's health
+    private int strength = 10;
+    private int agility = 1;
+    private int dexterity = 1;
+    private int level = 1; // Player's level
+    public int Level { get => level; set => level = value; }  // Property for level
+    public int Strength { get => strength; set => strength = value; }  // Property for strength
+    public int Agility { get => agility; set => agility = value; }  // Property for agility
+    public int Dexterity { get => dexterity; set => dexterity = value; }  // Property for dexterity
+    public int Health { get => health; set => health = value; }  // Property for health
     private List<Projectile> projectiles = new();
+    private List<Melee> meleeAttacks = new();
+    private int xp = 0; // Player's experience points
+    public int XP { get => xp; set => xp = value; }  // Property for XP
+    public int AbilityPoints { get; set; } = 0; // Points to spend on upgrades
 
     public Player()
     {
@@ -56,6 +68,11 @@ public class Player
             p.Update(Raylib.GetFrameTime());
         }
 
+        foreach (var m in meleeAttacks)
+        {
+            m.Update(Raylib.GetFrameTime());
+        }
+
         // Remove dead ones
         projectiles.RemoveAll(p => !p.IsAlive);
 
@@ -80,6 +97,15 @@ public class Player
         projectiles.Add(new Projectile(start, FacingDirection, ProjectileType.Normal));
     }
 
+    public void addProjectile(Projectile projectile)
+    {
+        projectiles.Add(projectile);
+    }
+
+    public void addMelee(Melee melee)
+    {
+        meleeAttacks.Add(melee);
+    }
 
     public void Draw()
     {

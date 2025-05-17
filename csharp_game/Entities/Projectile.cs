@@ -1,7 +1,6 @@
-using System;
 using System.Numerics;
 using Raylib_cs;
-using VampireSurvivorsClone.Engine;
+using VampireSurvivorsClone.Data;
 
 namespace VampireSurvivorsClone.Entities
 {
@@ -14,7 +13,8 @@ namespace VampireSurvivorsClone.Entities
         public bool IsAlive => Lifetime > 0;
 
         private float Size;
-        private float Damage;
+        private int Damage;
+        public int DamageValue => Damage;
         private ProjectileType Type;
 
         public Projectile(Vector2 startPosition, Vector2 direction, ProjectileType type)

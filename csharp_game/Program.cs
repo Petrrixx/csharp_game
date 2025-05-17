@@ -1,6 +1,5 @@
 ﻿using Raylib_cs;
 using VampireSurvivorsClone.Engine;
-using System.Drawing;
 
 public class Program
 {

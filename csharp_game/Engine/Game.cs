@@ -1,258 +1,193 @@
 using Raylib_cs;
-using System.Numerics;
+using VampireSurvivorsClone.Entities;
+using VampireSurvivorsClone.Data;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using VampireSurvivorsClone.Entities;
+using System.Numerics;
+using VampireSurvivorsClone.UI;
+using VampireSurvivorsClone.Systems;
 
-namespace VampireSurvivorsClone.Engine;
-
-public class Game
+namespace VampireSurvivorsClone.Engine
 {
-    private Player player;
-    private List<Enemy> enemies = new();
-    private float spawnTimer = 0f;
-    private float spawnInterval = 1f;
-    private List<XpGem> xpGems = new();
-    private int playerXP = 0;
-    private Timer gameTimer;
-    private int waveNumber = 1;
-    private float spawnChance = 0.1f;
-    private bool isWaveChanging = false;  // To track if wave change is happening
-    private int sizeW;
-    private int sizeH;
-    private Camera2D camera;
-
-    public Game(int sizeW, int sizeH)
+    public class Game
     {
-        this.sizeH = sizeH;
-        this.sizeW = sizeW;
+        private Player player;
+        private List<Enemy> enemies = new();
+        private List<XpGem> xpGems = new();
+        private int playerXP = 0;
+        private Timer gameTimer;
+        private int waveNumber = 1;
+        private float spawnChance = 0.1f;
+        private bool isWaveChanging = false;  // To track if wave change is happening
+        private int sizeW;
+        private int sizeH;
+        private Camera2D camera;
+        private Spawner spawner;  // Add the Spawner to handle enemy spawning
+        private float spawnInterval = 1f;  // Declare spawn interval for spawning control
+        private float spawnTimer = 0f;  // Declare spawn timer for enemy spawning
 
-        player = new Player();
-        gameTimer = new Timer();
-
-        camera = new Camera2D {
-            target = player.Position,
-            offset = new Vector2(sizeW / 2, sizeH / 2),
-            rotation = 0.0f,
-            zoom = 1.0f
-        };
-
-        // Spawn 1 starter enemy
-        SpawnEnemy();
-    }
-
-    public void Update()
-    {
-        if (!isWaveChanging)
+        public Game(int sizeW, int sizeH)
         {
-            player.Update();
+            this.sizeW = sizeW;
+            this.sizeH = sizeH;
+
+            player = new Player();
+            gameTimer = new Timer();
+            spawner = new Spawner(sizeW, sizeH, enemies);  // Initialize the Spawner with screen size and enemies list
+
+            camera = new Camera2D
+            {
+                target = player.Position,
+                offset = new Vector2(sizeW / 2, sizeH / 2),
+                rotation = 0.0f,
+                zoom = 1.0f
+            };
+
+            // Initial wave setup
+            spawner.SpawnEnemy(waveNumber);
         }
 
-        gameTimer.Update(Raylib.GetFrameTime());
-
-        // Check for wave transition (every 30 seconds)
-        if (gameTimer.IsWaveReady && !isWaveChanging)
+        public void Update()
         {
-            isWaveChanging = true;
-            waveNumber++;  // Increment the wave number
-            spawnChance += 0.1f;  // Increase spawn chance for next wave
-            spawnInterval = Math.Max(0.5f, spawnInterval - 0.1f);  // Faster spawn interval
-            gameTimer.Reset(30f);  // Reset timer for the next wave
+            if (!isWaveChanging)
+            {
+                player.Update();
+            }
 
-            // Remove all existing enemies for the new wave
-            enemies.Clear();
+            gameTimer.Update(Raylib.GetFrameTime());
 
-            // Reset player position to the center of the screen
-            player.Position = new Vector2(sizeW / 2, sizeH / 2); // Reset player position to center using defined window sizes
+            // Check for wave transition (every 30 seconds)
+            if (gameTimer.IsWaveReady && !isWaveChanging)
+            {
+                isWaveChanging = true;
+                waveNumber++;  // Increment the wave number
+                spawnChance += 0.1f;  // Increase spawn chance for next wave
+                spawnInterval = Math.Max(0.5f, spawnInterval - 0.1f);  // Faster spawn interval
+                gameTimer.Reset(30f);  // Reset timer for the next wave
 
-            // Display wave transition
-            DisplayWaveTransition();
-        }
+                // Remove all existing enemies for the new wave
+                enemies.Clear();
 
-        // Spawn enemies based on spawn chance
-        if (!isWaveChanging)
-        {
+                // Spawn new enemies for the next wave
+                spawner.SpawnEnemy(waveNumber);
+
+                // Reset player position to the center of the screen
+                player.Position = new Vector2(sizeW / 2, sizeH / 2); // Reset player position to center using defined window sizes
+
+                // Display wave transition
+                DisplayWaveTransition();
+            }
+
+            // Spawn enemies based on spawn chance
             spawnTimer -= Raylib.GetFrameTime();
             if (spawnTimer <= 0f && RandomSpawnCheck())
             {
-                SpawnEnemy();
+                spawner.SpawnEnemy(waveNumber);  // Use the spawner to handle enemy creation
                 spawnTimer = spawnInterval;
             }
-        }
 
-        // Update enemies and handle collision with player
-        foreach (var enemy in enemies.ToList())
-        {
-            enemy.Update(player.Position, Raylib.GetFrameTime());  // Pass player position and delta time
-
-            // Enemy attacks the player if they collide
-            if (Vector2.Distance(enemy.Position, player.Position) < 30f && enemy.IsAlive)
+            // Update enemies and handle collision with player
+            foreach (var enemy in enemies.ToList())
             {
-                // Only attack if enough cooldown has passed
-                if (enemy.LastAttackTime >= enemy.AttackCooldown)
-                {
-                    player.TakeDamage(1);
-                    enemy.LastAttackTime = 0f;  // Reset attack cooldown
-                }
-                else
-                {
-                    enemy.LastAttackTime += Raylib.GetFrameTime();  // Increment cooldown timer
-                }
+                enemy.Update(player, Raylib.GetFrameTime());  // Pass player position and delta time
             }
-        }
 
-        // Bullet-enemy collision and gem collection
-        foreach (var enemy in enemies.ToList())
-        {
-            foreach (var proj in player.Projectiles)
+            // Bullet-enemy collision and gem collection
+            foreach (var enemy in enemies.ToList())
             {
-                if (Vector2.Distance(enemy.Position, proj.Position) < 20f)
+                foreach (var proj in player.Projectiles)
                 {
-                    enemy.TakeDamage(1f);
-                    proj.Lifetime = 0;
-
-                    if (!enemy.IsAlive)
+                    if (Vector2.Distance(enemy.Position, proj.Position) < 20f)
                     {
-                        xpGems.Add(new XpGem(enemy.Position));
+                        enemy.TakeDamage(proj.DamageValue + player.Strength);
+                        proj.Lifetime = 0;
+
+                        if (!enemy.IsAlive)
+                        {
+                            xpGems.Add(new XpGem(enemy.Position));
+                        }
                     }
                 }
             }
-        }
 
-        // Update enemy attack cooldowns
-        foreach (var enemy in enemies)
-        {
-            if (enemy.IsAlive)
+            // Update XP gems
+            foreach (var gem in xpGems)
             {
-            enemy.LastAttackTime += Raylib.GetFrameTime();
+                gem.Update(player.Position);
+                if (gem.IsCollected) playerXP++;
+                player.XP = playerXP;  // Update player's XP
+            }
+            xpGems.RemoveAll(g => g.IsCollected);
+
+            // Remove dead enemies
+            enemies.RemoveAll(e => !e.IsAlive);
+
+            // Toggle fullscreen on key press (F11)
+            if (Raylib.IsKeyPressed(KeyboardKey.KEY_F11))
+            {
+                Raylib.ToggleFullscreen();
+            }
+
+            // Update the camera target to follow the player
+            camera.target = player.Position;
+
+            // Adjust the camera position if it's in fullscreen mode
+            if (Raylib.IsWindowFullscreen())
+            {
+                // Calculate the center of the screen based on the current window size
+                camera.offset = new Vector2(Raylib.GetScreenWidth() / 2, Raylib.GetScreenHeight() / 2);
+            }
+            else
+            {
+                // Set the camera offset to the center of the window
+                camera.offset = new Vector2(sizeW / 2, sizeH / 2);
             }
         }
 
-        // Update XP gems
-        foreach (var gem in xpGems)
+        public void Draw()
         {
-            gem.Update(player.Position);
-            if (gem.IsCollected) playerXP++;
-        }
-        xpGems.RemoveAll(g => g.IsCollected);
+            Raylib.BeginDrawing();
+            Raylib.ClearBackground(Color.DARKGRAY);
 
-        // Remove dead enemies
-        enemies.RemoveAll(e => !e.IsAlive);
+            Raylib.BeginMode2D(camera); // Start 2D mode with camera
 
-         // Toggle fullscreen on key press (F11)
-        if (Raylib.IsKeyPressed(KeyboardKey.KEY_F11))
-        {
-            Raylib.ToggleFullscreen();
-        }
+            // Draw the player, enemies, and XP gems
+            player.Draw();
+            foreach (var enemy in enemies)
+                enemy.Draw();
 
-        // Update the camera target to follow the player
-        camera.target = player.Position;
+            foreach (var gem in xpGems)
+                gem.Draw();
 
-        // Adjust the camera position if it's in fullscreen mode
-        if (Raylib.IsWindowFullscreen())
-        {
-            // Calculate the center of the screen based on the current window size
-            camera.offset = new Vector2(Raylib.GetScreenWidth() / 2, Raylib.GetScreenHeight() / 2);
-        }
-        else
-        {
-            // Set the camera offset to the center of the window
-            camera.offset = new Vector2(sizeW / 2, sizeH / 2);
-        }
-    }
+            Raylib.EndMode2D();
 
-    public void Draw()
-    {
-        Raylib.BeginDrawing();
-        Raylib.ClearBackground(Color.DARKGRAY);
+            // Draw the HUD (static, outside camera mode)
+            HUD.Draw(player, playerXP, waveNumber, gameTimer);
 
-        Raylib.BeginMode2D(camera); // Start 2D mode with camera
-
-        // Display timer countdown in the top-right corner
-        Raylib.DrawText($"Time: {Math.Ceiling(gameTimer.TimeRemaining)}", 1150, 10, 20, Color.RED);
-
-        player.Draw();
-        foreach (var enemy in enemies)
-            enemy.Draw();
-
-        foreach (var gem in xpGems)
-            gem.Draw();
-
-        Raylib.DrawText($"XP: {playerXP}", 10, 10, 20, Color.LIME);
-
-        Raylib.DrawText($"Health: {player.Health}", 10, 40, 20, Color.RED);
-
-        // Display current wave
-        Raylib.DrawText($"Wave {waveNumber}", 10, 10, 30, Color.LIME);
-
-        Raylib.EndMode2D();
-
-        Raylib.EndDrawing();
-    }
-
-    // This method spawns an enemy at a random position outside the player's view
-    private void SpawnEnemy()
-    {
-        Random rand = new();
-
-        // Hardcoded screen size for optimization
-        int screenW = 1280;
-        int screenH = 720;
-
-        // Set minimum and maximum spawn offsets
-        int minOffset = 200; // Minimum distance from player (in pixels)
-        int maxOffsetX = screenW / 2 + 100; // Spawn just outside the visible area horizontally
-        int maxOffsetY = screenH / 2 + 100; // Spawn just outside the visible area vertically
-
-        // Randomly choose a side: 0=left, 1=right, 2=top, 3=bottom
-        int side = rand.Next(0, 4);
-        float spawnX = player.Position.X;
-        float spawnY = player.Position.Y;
-
-        switch (side)
-        {
-            case 0: // Left
-                spawnX -= rand.Next(minOffset, maxOffsetX);
-                spawnY += rand.Next(-maxOffsetY, maxOffsetY);
-                break;
-            case 1: // Right
-                spawnX += rand.Next(minOffset, maxOffsetX);
-                spawnY += rand.Next(-maxOffsetY, maxOffsetY);
-                break;
-            case 2: // Top
-                spawnX += rand.Next(-maxOffsetX, maxOffsetX);
-                spawnY -= rand.Next(minOffset, maxOffsetY);
-                break;
-            case 3: // Bottom
-                spawnX += rand.Next(-maxOffsetX, maxOffsetX);
-                spawnY += rand.Next(minOffset, maxOffsetY);
-                break;
+            Raylib.EndDrawing();
         }
 
-        enemies.Add(new Enemy(new Vector2(spawnX, spawnY)));
-    }
+        private bool RandomSpawnCheck()
+        {
+            Random rand = new();
+            return rand.NextDouble() < spawnChance;  // Random chance based on wave
+        }
 
-    private bool RandomSpawnCheck()
-    {
-        Random rand = new();
-        return rand.NextDouble() < spawnChance;  // Random chance based on wave
-    }
+        private void DisplayWaveTransition()
+        {
+            // Display wave number on the screen for 2 seconds
+            Raylib.BeginDrawing();
+            Raylib.ClearBackground(Color.DARKGRAY);
 
-    private void DisplayWaveTransition()
-    {
-        // Display wave number on the screen for 2 seconds
-        Raylib.BeginDrawing();
-        Raylib.ClearBackground(Color.DARKGRAY);
+            Raylib.DrawText($"Wave {waveNumber}", 520, 360, 50, Color.RED);
 
-        Raylib.DrawText($"Wave {waveNumber}", 520, 360, 50, Color.RED);
+            Raylib.EndDrawing();
 
-        Raylib.EndDrawing();
+            System.Threading.Thread.Sleep(2000);  // Pause for 2 seconds to show wave number
 
-        System.Threading.Thread.Sleep(2000);  // Pause for 2 seconds to show wave number
-
-        // After the transition, allow the game to continue
-        isWaveChanging = false;
+            // After the transition, allow the game to continue
+            isWaveChanging = false;
+        }
     }
 }
-
-

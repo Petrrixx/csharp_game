@@ -1,5 +1,4 @@
 namespace VampireSurvivorsClone.Engine;
-
 public class Timer
 {
     public float TimeRemaining { get; private set; } = 30f;  // Start with 30 seconds

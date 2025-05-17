@@ -1,63 +1,70 @@
-using Raylib_cs;
+using System;
 using System.Numerics;
+using Raylib_cs;
+using VampireSurvivorsClone.Data;
 
-namespace VampireSurvivorsClone.Entities;
-
-public class Enemy
+namespace VampireSurvivorsClone.Entities
 {
-    public Vector2 Position { get; private set; }
-    private float speed = 100f;
-    private float size = 20f;
-    public bool IsAlive { get; private set; } = true;
-    private float health = 1f;
-    private float lastAttackTime = -2f;  // To prevent immediate attack on spawn
-    private float attackCooldown = 2f;   // 2 seconds cooldown between attacks
-
-    public float LastAttackTime { get => lastAttackTime; set => lastAttackTime = value; }
-    public float AttackCooldown { get => attackCooldown; set => attackCooldown = value; }
-
-    public Enemy(Vector2 spawnPosition)
+    public class Enemy
     {
-        Position = spawnPosition;
-    }
+        public Vector2 Position { get; private set; }
+        private float speed;
+        private float size = 20f;
+        public bool IsAlive { get; private set; } = true;
+        private int health;
+        private float lastAttackTime = -2f;  // To prevent immediate attack on spawn
+        private float attackCooldown = 2f;   // 2 seconds cooldown between attacks
+        private int damage;
+        private int xpDrop;
 
-    public void TakeDamage(float amount)
-    {
-        health -= amount;
-        if (health <= 0)
-            IsAlive = false;
-    }
-
-    public void Update(Vector2 playerPosition, float deltaTime)
-    {
-         // Move towards the player
-        Vector2 direction = playerPosition - Position;
-        if (direction != Vector2.Zero)
+        // Constructor for enemy
+        public Enemy(Vector2 spawnPosition, EnemyData data)
         {
-            direction = Vector2.Normalize(direction);
-            Position += direction * speed * deltaTime;
+            Position = spawnPosition;
+            health = data.Health;
+            speed = data.Speed;
+            damage = data.Damage;
+            xpDrop = data.XP;
         }
 
-        // Attack cooldown logic
-        lastAttackTime += deltaTime;
-
-        // Check if enemy can attack the player (colliding + cooldown)
-        if (Vector2.Distance(playerPosition, Position) < size && lastAttackTime >= attackCooldown)
+        public void TakeDamage(int amount)
         {
-            lastAttackTime = 0f; // Reset cooldown
-            
+            health -= amount;
+            if (health <= 0)
+                IsAlive = false;
         }
-    }
 
-    public void Draw()
-    {
-        Raylib.DrawTriangle(
-            new Vector2(Position.X, Position.Y - size), 
-            new Vector2(Position.X - size, Position.Y + size),
-            new Vector2(Position.X + size, Position.Y + size),
-            Color.RED
-        );
+        public void Update(Player player, float deltaTime)
+        {
+            var playerPosition = player.Position;
+            // Move towards the player
+            Vector2 direction = playerPosition - Position;
+            if (direction != Vector2.Zero)
+            {
+                direction = Vector2.Normalize(direction);
+                Position += direction * speed * deltaTime;
+            }
+
+            // Attack cooldown logic (update it here only)
+            lastAttackTime += deltaTime;
+
+            // Check if enemy can attack the player (colliding + cooldown)
+            if (Vector2.Distance(playerPosition, Position) < size && lastAttackTime >= attackCooldown)
+            {
+                // Attack the player
+                player.TakeDamage(damage);
+                lastAttackTime = 0f; // Reset cooldown after attack
+            }
+        }
+
+        public void Draw()
+        {
+            Raylib.DrawTriangle(
+                new Vector2(Position.X, Position.Y - size), 
+                new Vector2(Position.X - size, Position.Y + size),
+                new Vector2(Position.X + size, Position.Y + size),
+                Color.RED
+            );
+        }
     }
 }
-
-

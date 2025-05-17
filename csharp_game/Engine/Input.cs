@@ -1,9 +1,5 @@
 using Raylib_cs;
 using System.Numerics;
-using System.Collections.Generic;
-using System.Linq;
-using VampireSurvivorsClone.Entities;
-using VampireSurvivorsClone.Engine;
 
 namespace VampireSurvivorsClone;
 
