@@ -1,0 +1,5 @@
+@startuml
+class Input <<static>> {
+    + {static} GetMovementDirection() : Vector2
+}
+@enduml

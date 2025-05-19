@@ -15,7 +15,7 @@ namespace VampireSurvivorsClone.Entities
         private float lastAttackTime = -2f;  // To prevent immediate attack on spawn
         private float attackCooldown = 2f;   // 2 seconds cooldown between attacks
         private int damage;
-        private int xpDrop;
+        public int XPDrop { get; private set; } = 1;
 
         // Constructor for enemy
         public Enemy(Vector2 spawnPosition, EnemyData data)
@@ -24,7 +24,7 @@ namespace VampireSurvivorsClone.Entities
             health = data.Health;
             speed = data.Speed;
             damage = data.Damage;
-            xpDrop = data.XP;
+            XPDrop = data.XP;
         }
 
         public void TakeDamage(int amount)
@@ -60,7 +60,7 @@ namespace VampireSurvivorsClone.Entities
         public void Draw()
         {
             Raylib.DrawTriangle(
-                new Vector2(Position.X, Position.Y - size), 
+                new Vector2(Position.X, Position.Y - size),
                 new Vector2(Position.X - size, Position.Y + size),
                 new Vector2(Position.X + size, Position.Y + size),
                 Color.RED

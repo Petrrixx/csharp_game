@@ -1,0 +1,13 @@
+@startuml
+class CharacterData {
+    + Health : float <<get>> <<set>>
+    + Speed : float <<get>> <<set>>
+    + Strength : float <<get>> <<set>>
+    + Dexterity : float <<get>> <<set>>
+    + Agility : float <<get>> <<set>>
+    + Texture : string <<get>> <<set>>
+    + CharacterData(health:float, speed:float, strength:float, dexterity:float, agility:float, texture:string)
+    + UpdateStats(healthIncrease:float, speedIncrease:float, strengthIncrease:float, dexterityIncrease:float, agilityIncrease:float) : void
+    + {static} GetDefaultCharacterData() : CharacterData
+}
+@enduml

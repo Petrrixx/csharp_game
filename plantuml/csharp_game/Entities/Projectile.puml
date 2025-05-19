@@ -1,0 +1,15 @@
+@startuml
+class Projectile {
+    + Speed : float
+    + Lifetime : float
+    + IsAlive : bool <<get>>
+    + SizeValue : float <<get>> <<set>>
+    + DamageValue : int <<get>> <<set>>
+    + Projectile(startPosition:Vector2, direction:Vector2, type:ProjectileType)
+    + Update(deltaTime:float, enemies:List<Enemy>) : void
+    + Draw() : void
+}
+Projectile --> "Position" Vector2
+Projectile --> "Direction" Vector2
+Projectile --> "TypeValue" ProjectileType
+@enduml

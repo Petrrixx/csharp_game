@@ -1,0 +1,10 @@
+@startuml
+class Enemy {
+    + IsAlive : bool <<get>> = true
+    + Enemy(spawnPosition:Vector2, data:EnemyData)
+    + TakeDamage(amount:int) : void
+    + Update(player:Player, deltaTime:float) : void
+    + Draw() : void
+}
+Enemy --> "Position" Vector2
+@enduml

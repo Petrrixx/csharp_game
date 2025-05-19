@@ -26,6 +26,7 @@ namespace VampireSurvivorsClone.Engine
         private Spawner spawner;  // Add the Spawner to handle enemy spawning
         private float spawnInterval = 1f;  // Declare spawn interval for spawning control
         private float spawnTimer = 0f;  // Declare spawn timer for enemy spawning
+        private LevelUpMenu levelUpMenu;
 
         public Game(int sizeW, int sizeH)
         {
@@ -34,7 +35,8 @@ namespace VampireSurvivorsClone.Engine
 
             player = new Player();
             gameTimer = new Timer();
-            spawner = new Spawner(sizeW, sizeH, enemies);  // Initialize the Spawner with screen size and enemies list
+            spawner = new Spawner(sizeW, sizeH, enemies, player);  // Initialize the Spawner with screen size and enemies list
+            levelUpMenu = new LevelUpMenu(player);  // Initialize the LevelUpMenu with the player
 
             camera = new Camera2D
             {
@@ -50,6 +52,13 @@ namespace VampireSurvivorsClone.Engine
 
         public void Update()
         {
+            // Ak je aktívne level up menu, update iba menu a return
+            if (levelUpMenu.IsActive)
+            {
+                levelUpMenu.Update();
+                return;
+            }
+
             if (!isWaveChanging)
             {
                 player.Update();
@@ -66,8 +75,10 @@ namespace VampireSurvivorsClone.Engine
                 spawnInterval = Math.Max(0.5f, spawnInterval - 0.1f);  // Faster spawn interval
                 gameTimer.Reset(30f);  // Reset timer for the next wave
 
-                // Remove all existing enemies for the new wave
+                // Remove all existing entities for the new wave
                 enemies.Clear();
+                player.Projectiles.Clear();
+                xpGems.Clear();
 
                 // Spawn new enemies for the next wave
                 spawner.SpawnEnemy(waveNumber);
@@ -100,25 +111,60 @@ namespace VampireSurvivorsClone.Engine
                 {
                     if (Vector2.Distance(enemy.Position, proj.Position) < 20f)
                     {
-                        enemy.TakeDamage(proj.DamageValue + player.Strength);
-                        proj.Lifetime = 0;
-
-                        if (!enemy.IsAlive)
+                        if (proj.TypeValue == ProjectileType.Explosive)
                         {
-                            xpGems.Add(new XpGem(enemy.Position));
+                            // AoE damage: poškodenie všetkým nepriateľom v okruhu
+                            foreach (var aoeEnemy in enemies)
+                            {
+                                if (Vector2.Distance(proj.Position, aoeEnemy.Position) < 60f) // polomer výbuchu
+                                    aoeEnemy.TakeDamage(proj.DamageValue + player.Strength);
+                            }
                         }
+                        else
+                        {
+                            enemy.TakeDamage(proj.DamageValue + player.Strength);
+                        }
+                        proj.Lifetime = 0;
                     }
                 }
+            }
+
+            // Update melee attacks and check for collision with enemies
+            foreach (var melee in player.MeleeAttacks)
+            {
+                foreach (var enemy in enemies)
+                {
+                    if (Vector2.Distance(melee.Position + melee.Direction * melee.Range, enemy.Position) < melee.Size + 10f)
+                    {
+                        enemy.TakeDamage((int)melee.Damage + player.Damage);
+                        melee.TriggerHitEffect();
+                    }
+                }
+            }
+
+            // Update projectiles
+            foreach (var p in player.Projectiles)
+            {
+                p.Update(Raylib.GetFrameTime(), this.enemies);
             }
 
             // Update XP gems
             foreach (var gem in xpGems)
             {
                 gem.Update(player.Position);
-                if (gem.IsCollected) playerXP++;
+                if (gem.IsCollected) playerXP += gem.XPValue + player.Luck;  // Add XP based on player's luck
                 player.XP = playerXP;  // Update player's XP
             }
             xpGems.RemoveAll(g => g.IsCollected);
+
+            // Add XP gems for all newly dead enemies (projektil aj melee kill)
+            foreach (var enemy in enemies.ToList())
+            {
+                if (!enemy.IsAlive && !xpGems.Any(g => Vector2.Distance(g.Position, enemy.Position) < 1f))
+                {
+                    xpGems.Add(new XpGem(enemy.Position, enemy.XPDrop));
+                }
+            }
 
             // Remove dead enemies
             enemies.RemoveAll(e => !e.IsAlive);
@@ -143,10 +189,25 @@ namespace VampireSurvivorsClone.Engine
                 // Set the camera offset to the center of the window
                 camera.offset = new Vector2(sizeW / 2, sizeH / 2);
             }
+
+            // XP level up check
+            int xpNeeded = 5 + (player.Level * 5);
+            if (player.XP >= xpNeeded)
+            {
+                levelUpMenu.Open();
+                playerXP -= xpNeeded;    
+                player.XP -= xpNeeded;     
+            }
         }
 
         public void Draw()
         {
+            if (levelUpMenu.IsActive)
+            {
+                levelUpMenu.Draw();
+                return;
+            }
+
             Raylib.BeginDrawing();
             Raylib.ClearBackground(Color.DARKGRAY);
 

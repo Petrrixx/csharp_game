@@ -1,0 +1,16 @@
+@startuml
+enum MeleeType {
+    BasicSlash,
+    HeavySmash,
+    FastStrike,
+}
+class MeleeData {
+    + Damage : float <<get>> <<set>>
+    + Range : float <<get>> <<set>>
+    + Cooldown : float <<get>> <<set>>
+    + Texture : string <<get>> <<set>>
+    + MeleeData(type:MeleeType, damage:float, range:float, cooldown:float, texture:string)
+    + {static} GetMeleeData(type:MeleeType) : MeleeData
+}
+MeleeData --> "Type" MeleeType
+@enduml

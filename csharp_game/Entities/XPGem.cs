@@ -8,10 +8,12 @@ public class XpGem
     public Vector2 Position;
     public bool IsCollected = false;
     private float size = 10f;
+    public int XPValue { get; set; } = 1;
 
-    public XpGem(Vector2 pos)
+    public XpGem(Vector2 pos, int xpValue = 1)
     {
         Position = pos;
+        this.XPValue = xpValue;
     }
 
     public void Update(Vector2 playerPos)

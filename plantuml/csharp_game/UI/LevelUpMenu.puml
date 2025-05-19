@@ -1,0 +1,21 @@
+@startuml
+class LevelUpMenu {
+    + LevelUpMenu(player:Player)
+    + Open() : void
+    + IsActive : bool <<get>>
+    + Update() : void
+    + Draw() : void
+}
+class UpgradeOption {
+    + Stat : string
+    + Weapon : string
+    + Description : string
+}
+enum UpgradeType {
+    Stat,
+    Weapon,
+}
+LevelUpMenu +-- UpgradeOption
+UpgradeOption --> "Type" UpgradeType
+LevelUpMenu +-- UpgradeType
+@enduml

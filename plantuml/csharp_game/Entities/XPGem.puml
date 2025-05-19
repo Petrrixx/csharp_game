@@ -1,0 +1,9 @@
+@startuml
+class XpGem {
+    + IsCollected : bool = false
+    + XpGem(pos:Vector2)
+    + Update(playerPos:Vector2) : void
+    + Draw() : void
+}
+XpGem --> "Position" Vector2
+@enduml

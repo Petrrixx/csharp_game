@@ -1,0 +1,6 @@
+@startuml
+class Spawner {
+    + Spawner(screenWidth:int, screenHeight:int, enemies:List<Enemy>)
+    + SpawnEnemy(waveNumber:int) : void
+}
+@enduml

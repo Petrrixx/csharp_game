@@ -1,0 +1,5 @@
+@startuml
+class HUD {
+    + {static} Draw(player:Player, playerXP:int, waveNumber:int, gameTimer:VampireSurvivorsClone.Engine.Timer) : void
+}
+@enduml

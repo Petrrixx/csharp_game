@@ -13,9 +13,11 @@ namespace VampireSurvivorsClone.Entities
         public bool IsAlive => Lifetime > 0;
 
         private float Size;
+        public float SizeValue { get => Size; set => Size = value; }
         private int Damage;
-        public int DamageValue => Damage;
+        public int DamageValue { get => Damage; set => Damage = value; }
         private ProjectileType Type;
+        public ProjectileType TypeValue => Type;
 
         public Projectile(Vector2 startPosition, Vector2 direction, ProjectileType type)
         {
@@ -29,12 +31,26 @@ namespace VampireSurvivorsClone.Entities
             Type = type;
         }
 
-        public void Update(float deltaTime)
+        public void Update(float deltaTime, List<Enemy> enemies = null)
         {
-            if (Type == ProjectileType.Homing)
+            if (Type == ProjectileType.Homing && enemies != null && enemies.Count > 0)
             {
-                // Add homing behavior: Make the projectile seek the player or enemies
-                // For now, let's assume we just point it in the direction of the target
+                // Najdi najbližšieho nepriateľa
+                Enemy closest = null;
+                float minDist = float.MaxValue;
+                foreach (var e in enemies)
+                {
+                    float dist = Vector2.Distance(Position, e.Position);
+                    if (dist < minDist)
+                    {
+                        minDist = dist;
+                        closest = e;
+                    }
+                }
+                if (closest != null)
+                {
+                    Direction = Vector2.Normalize(closest.Position - Position);
+                }
             }
 
             Position += Direction * Speed * deltaTime;
@@ -52,7 +68,10 @@ namespace VampireSurvivorsClone.Entities
                 _ => Color.YELLOW
             };
 
-            Raylib.DrawRectangle((int)Position.X, (int)Position.Y, (int)Size, (int)Size, color);
+            if (Type == ProjectileType.Explosive)
+                Raylib.DrawCircleV(Position, Size * 1.2f, color);
+            else
+                Raylib.DrawRectangle((int)Position.X, (int)Position.Y, (int)Size, (int)Size, color);
         }
     }
 }

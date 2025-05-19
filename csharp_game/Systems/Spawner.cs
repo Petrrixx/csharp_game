@@ -10,12 +10,14 @@ namespace VampireSurvivorsClone.Systems
         private int screenWidth;
         private int screenHeight;
         private List<Enemy> enemies;
+        private Player player;
 
-        public Spawner(int screenWidth, int screenHeight, List<Enemy> enemies)
+        public Spawner(int screenWidth, int screenHeight, List<Enemy> enemies, Player player)
         {
             this.screenWidth = screenWidth;
             this.screenHeight = screenHeight;
             this.enemies = enemies;
+            this.player = player;
         }
 
         // Spawn an enemy based on the current wave number and spawn chance
@@ -69,34 +71,17 @@ namespace VampireSurvivorsClone.Systems
         // Generate a random spawn position for the enemy, ensuring it's outside the player's view
         private Vector2 GetRandomSpawnPosition()
         {
-            int minOffset = 200;
-            int maxOffsetX = screenWidth / 2 + 100;
-            int maxOffsetY = screenHeight / 2 + 100;
+            // Get the player's position
+            Vector2 playerPos = player.Position;
 
-            // Randomly choose a side to spawn the enemy
-            int side = rand.Next(0, 4);
-            float spawnX = screenWidth / 2;  // Start at the center
-            float spawnY = screenHeight / 2;
+            // Nastav spawn pásmo (napr. 400 až 900 pixelov od hráča)
+            float minRadius = 400f;
+            float maxRadius = 900f;
 
-            switch (side)
-            {
-                case 0: // Left
-                    spawnX -= rand.Next(minOffset, maxOffsetX);
-                    spawnY += rand.Next(-maxOffsetY, maxOffsetY);
-                    break;
-                case 1: // Right
-                    spawnX += rand.Next(minOffset, maxOffsetX);
-                    spawnY += rand.Next(-maxOffsetY, maxOffsetY);
-                    break;
-                case 2: // Top
-                    spawnX += rand.Next(-maxOffsetX, maxOffsetX);
-                    spawnY -= rand.Next(minOffset, maxOffsetY);
-                    break;
-                case 3: // Bottom
-                    spawnX += rand.Next(-maxOffsetX, maxOffsetX);
-                    spawnY += rand.Next(minOffset, maxOffsetY);
-                    break;
-            }
+            double angle = rand.NextDouble() * Math.PI * 2;
+            float radius = (float)(minRadius + rand.NextDouble() * (maxRadius - minRadius));
+            float spawnX = playerPos.X + (float)Math.Cos(angle) * radius;
+            float spawnY = playerPos.Y + (float)Math.Sin(angle) * radius;
 
             return new Vector2(spawnX, spawnY);
         }

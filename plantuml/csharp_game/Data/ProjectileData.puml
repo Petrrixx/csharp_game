@@ -1,0 +1,17 @@
+@startuml
+enum ProjectileType {
+    Normal,
+    Homing,
+    Explosive,
+    Piercing,
+}
+class ProjectileData {
+    + Speed : float <<get>> <<set>>
+    + Size : float <<get>> <<set>>
+    + Lifetime : float <<get>> <<set>>
+    + Damage : int <<get>> <<set>>
+    + ProjectileData(type:ProjectileType, speed:float, size:float, lifetime:float, damage:int)
+    + {static} GetProjectileData(type:ProjectileType) : ProjectileData
+}
+ProjectileData --> "Type" ProjectileType
+@enduml

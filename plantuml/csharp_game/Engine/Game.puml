@@ -1,0 +1,7 @@
+@startuml
+class Game {
+    + Game(sizeW:int, sizeH:int)
+    + Update() : void
+    + Draw() : void
+}
+@enduml

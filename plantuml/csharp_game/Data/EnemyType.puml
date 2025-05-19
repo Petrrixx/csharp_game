@@ -1,0 +1,18 @@
+@startuml
+enum EnemyType {
+    Common,
+    Rare,
+    VeryRare,
+    Legendary,
+    Boss,
+}
+class EnemyData {
+    + Health : int <<get>> <<set>>
+    + Speed : int <<get>> <<set>>
+    + Damage : int <<get>> <<set>>
+    + XP : int <<get>> <<set>>
+    + EnemyData(type:EnemyType, health:int, speed:int, damage:int, xp:int)
+    + {static} GetEnemyData(type:EnemyType, waveNumber:int) : EnemyData
+}
+EnemyData --> "Type" EnemyType
+@enduml

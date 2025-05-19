@@ -7,9 +7,13 @@ namespace VampireSurvivorsClone.Entities
     {
         public Vector2 Position;
         public Vector2 Direction;
-        public float Range = 50f;  // Range of the melee attack
-        public float Damage = 20f; // Melee damage
-        public float Size = 20f;   // Size of the melee area (could represent an arc or radius)
+        public float Range = 50f;
+        public float Damage = 20f;
+        public float Size = 20f;
+
+        // Nové pre efekt zásahu
+        public bool ShowHitEffect = false;
+        private float hitEffectTimer = 0f;
 
         public Melee(Vector2 startPosition, Vector2 direction)
         {
@@ -19,14 +23,32 @@ namespace VampireSurvivorsClone.Entities
 
         public void Update(float deltaTime)
         {
-            // Melee doesn't move, but it could have an effect, like checking collision with enemies in range
-            // Add logic for attacking and hitting enemies here
+            if (ShowHitEffect)
+            {
+                hitEffectTimer -= deltaTime;
+                if (hitEffectTimer <= 0f)
+                    ShowHitEffect = false;
+            }
+        }
+
+        // Zavolaj toto keď dôjde k zásahu
+        public void TriggerHitEffect()
+        {
+            ShowHitEffect = true;
+            hitEffectTimer = 0.15f; // efekt trvá 0.15 sekundy
         }
 
         public void Draw()
         {
-            // Draw a representation of the melee attack
-            Raylib.DrawCircleV(Position + Direction * Range, Size, Color.ORANGE);
+            Color color = Damage > 30 ? Color.RED : (Damage > 20 ? Color.ORANGE : Color.BROWN);
+            Vector2 hitPos = Position + Direction * Range;
+            Raylib.DrawCircleV(hitPos, Size, color);
+
+            // Efekt zásahu: prázdny kruh (outline)
+            if (ShowHitEffect)
+            {
+                Raylib.DrawCircleLines((int)hitPos.X, (int)hitPos.Y, Size + 8, Color.WHITE);
+            }
         }
     }
 }

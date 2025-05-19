@@ -1,0 +1,14 @@
+@startuml
+class Melee {
+    + Range : float = 50f
+    + Damage : float = 20f
+    + Size : float = 20f
+    + ShowHitEffect : bool = false
+    + Melee(startPosition:Vector2, direction:Vector2)
+    + Update(deltaTime:float) : void
+    + TriggerHitEffect() : void
+    + Draw() : void
+}
+Melee --> "Position" Vector2
+Melee --> "Direction" Vector2
+@enduml

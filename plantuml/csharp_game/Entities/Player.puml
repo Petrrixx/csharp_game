@@ -1,0 +1,29 @@
+@startuml
+class Player {
+    + Level : int <<get>> <<set>>
+    + Strength : int <<get>> <<set>>
+    + Agility : int <<get>> <<set>>
+    + Dexterity : int <<get>> <<set>>
+    + Health : int <<get>> <<set>>
+    + XP : int <<get>> <<set>>
+    + GoldPoints : int <<get>> <<set>> = 0
+    + MaxWeapons : int <<get>> = 8
+    + Player()
+    + TakeDamage(amount:int) : void
+    + Update() : void
+    + addProjectile(projectile:Projectile) : void
+    + addMelee(melee:Melee) : void
+    + Draw() : void
+    + GetWeaponLevel(weaponName:string) : int
+    + AddOrUpgradeWeapon(weaponName:string) : void
+}
+class "List`1"<T> {
+}
+class "IReadOnlyList`1"<T> {
+}
+Player --> "Position" Vector2
+Player --> "MeleeAttacks<Melee>" "List`1"
+Player --> "WeaponInventory<WeaponInventoryItem>" "IReadOnlyList`1"
+Player --> "Projectiles<Projectile>" "List`1"
+Player o-> "FacingDirection" Vector2
+@enduml

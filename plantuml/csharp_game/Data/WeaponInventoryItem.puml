@@ -1,0 +1,6 @@
+@startuml
+class WeaponInventoryItem {
+    + Name : string
+    + Level : int = 1
+}
+@enduml

@@ -1,0 +1,19 @@
+@startuml
+!include .\\csharp_game\Program.puml
+!include .\\csharp_game\Data\CharacterData.puml
+!include .\\csharp_game\Data\EnemyType.puml
+!include .\\csharp_game\Data\MeleeData.puml
+!include .\\csharp_game\Data\ProjectileData.puml
+!include .\\csharp_game\Data\WeaponInventoryItem.puml
+!include .\\csharp_game\Engine\Game.puml
+!include .\\csharp_game\Engine\Input.puml
+!include .\\csharp_game\Engine\Timer.puml
+!include .\\csharp_game\Entities\Enemy.puml
+!include .\\csharp_game\Entities\Melee.puml
+!include .\\csharp_game\Entities\Player.puml
+!include .\\csharp_game\Entities\Projectile.puml
+!include .\\csharp_game\Entities\XPGem.puml
+!include .\\csharp_game\Systems\Spawner.puml
+!include .\\csharp_game\UI\HUD.puml
+!include .\\csharp_game\UI\LevelUpMenu.puml
+@enduml

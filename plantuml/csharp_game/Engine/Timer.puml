@@ -1,0 +1,8 @@
+@startuml
+class Timer {
+    + TimeRemaining : float <<get>> = 30f
+    + IsWaveReady : bool <<get>>
+    + Update(deltaTime:float) : void
+    + Reset(newTime:float) : void
+}
+@enduml
