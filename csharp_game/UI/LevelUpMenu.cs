@@ -15,7 +15,7 @@ namespace VampireSurvivorsClone.UI
         private int selected = 0;
 
         private static readonly string[] StatNames = { "Strength", "Agility", "Vitality", "Dexterity" };
-        private static readonly string[] WeaponNames = { "Normal Projectile", "Homing Projectile", "Explosive Projectile", "Melee Attack" };
+        private static readonly string[] WeaponNames = { "Normal Projectile", "Homing Projectile", "Explosive Projectile", "Melee Attack", "Garlic", "Shuriken" };
 
         public LevelUpMenu(Player player)
         {
@@ -79,11 +79,12 @@ namespace VampireSurvivorsClone.UI
                 new UpgradeOption { Type = UpgradeType.Stat, Stat = "Vitality", Description = "Vitality +10 (Health)" },
                 new UpgradeOption { Type = UpgradeType.Stat, Stat = "Dexterity", Description = "Dexterity +1 (Cooldown)" },
                 new UpgradeOption { Type = UpgradeType.Stat, Stat = "Luck", Description = "Luck +1 (More XP from gems)" },
-                //new UpgradeOption { Type = UpgradeType.Stat, Stat = "Inventory", Description = "Inventory Slot +1 (Very Rare)" },
+                new UpgradeOption { Type = UpgradeType.Weapon, Weapon = "Garlic", Description = WeaponOptionDesc("Garlic") },
                 new UpgradeOption { Type = UpgradeType.Weapon, Weapon = "Normal Projectile", Description = WeaponOptionDesc("Normal Projectile") },
                 new UpgradeOption { Type = UpgradeType.Weapon, Weapon = "Homing Projectile", Description = WeaponOptionDesc("Homing Projectile") },
                 new UpgradeOption { Type = UpgradeType.Weapon, Weapon = "Explosive Projectile", Description = WeaponOptionDesc("Explosive Projectile") },
-                new UpgradeOption { Type = UpgradeType.Weapon, Weapon = "Melee Attack", Description = WeaponOptionDesc("Melee Attack") }
+                new UpgradeOption { Type = UpgradeType.Weapon, Weapon = "Melee Attack", Description = WeaponOptionDesc("Melee Attack") },
+                new UpgradeOption { Type = UpgradeType.Weapon, Weapon = "Shuriken", Description = WeaponOptionDesc("Shuriken") },
             };
 
              // Inventory Slot +1 chance
@@ -104,7 +105,12 @@ namespace VampireSurvivorsClone.UI
         private string WeaponOptionDesc(string weapon)
         {
             int level = player.GetWeaponLevel(weapon);
-            return level == 0 ? $"{weapon} (NEW)" : $"{weapon} Lv.{level + 1}";
+            if (level == 0)
+                return $"{weapon} (NEW)";
+            else if (level >= 5)
+                return $"{weapon} (MAX)";
+            else
+                return $"{weapon} Lv.{level + 1} (Upgrade)";
         }
 
         private void ApplyOption(UpgradeOption option)

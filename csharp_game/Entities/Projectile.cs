@@ -11,13 +11,14 @@ namespace VampireSurvivorsClone.Entities
         public float Speed;
         public float Lifetime;
         public bool IsAlive => Lifetime > 0;
-
         private float Size;
         public float SizeValue { get => Size; set => Size = value; }
         private int Damage;
         public int DamageValue { get => Damage; set => Damage = value; }
         private ProjectileType Type;
         public ProjectileType TypeValue => Type;
+        public int PierceCount { get; set; } = 1;
+        public HashSet<Enemy> HitEnemies { get; set; } // for Shuriken and other piercing projectiles
 
         public Projectile(Vector2 startPosition, Vector2 direction, ProjectileType type)
         {
@@ -35,7 +36,7 @@ namespace VampireSurvivorsClone.Entities
         {
             if (Type == ProjectileType.Homing && enemies != null && enemies.Count > 0)
             {
-                // Najdi najbližšieho nepriateľa
+                // Find the closest enemy
                 Enemy closest = null;
                 float minDist = float.MaxValue;
                 foreach (var e in enemies)

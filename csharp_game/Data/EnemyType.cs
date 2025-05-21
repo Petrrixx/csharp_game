@@ -7,7 +7,9 @@ namespace VampireSurvivorsClone.Data
         Rare,
         VeryRare,
         Legendary,
-        Boss
+        Boss,
+        DemonKing,
+        Mimic
     }
 
     // Class to hold enemy data
@@ -30,29 +32,36 @@ namespace VampireSurvivorsClone.Data
         }
 
         // Static method to get the default enemy data based on enemy type
-        public static EnemyData GetEnemyData(EnemyType type, int waveNumber)
+        public static EnemyData GetEnemyData(EnemyType type, int waveNumber, DifficultyPreset preset)
         {
-            // Uprav základné hodnoty pre prvé vlny, potom rýchlejšie škáluj
-            int baseHealth = 20 + waveNumber * 5; // Začni na 20 HP, rýchlejšie rastie
-            int baseDamage = 2 + waveNumber / 2;  // Začni na 2 dmg, rastie pomalšie
-            int baseSpeed = 100 + waveNumber * 2; // Začni pomalšie
+            // Base stats for enemies
+            int baseHealth = (int)((20 + waveNumber * 5) * preset.EnemyHealthMultiplier);
+            int baseDamage = (int)((2 + waveNumber / 2) * preset.EnemyDamageMultiplier);
+            int baseSpeed = 100 + waveNumber * 2;
+            int baseXP = (int)((waveNumber - 1) * preset.EnemyXPMultiplier);
 
             switch (type)
             {
                 case EnemyType.Common:
-                    return new EnemyData(EnemyType.Common, baseHealth, baseSpeed, baseDamage, 10);
+                    return new EnemyData(EnemyType.Common, baseHealth, baseSpeed, baseDamage, 1 + baseXP);
 
                 case EnemyType.Rare:
-                    return new EnemyData(EnemyType.Rare, baseHealth * 2, baseSpeed - 10, baseDamage + 2, 20);
+                    return new EnemyData(EnemyType.Rare, baseHealth * 2, baseSpeed - 10, baseDamage + 2, 2 + baseXP);
 
                 case EnemyType.VeryRare:
-                    return new EnemyData(EnemyType.VeryRare, baseHealth * 4, baseSpeed - 20, baseDamage + 5, 50);
+                    return new EnemyData(EnemyType.VeryRare, baseHealth * 4, baseSpeed - 20, baseDamage + 5, 5 + baseXP);
 
                 case EnemyType.Legendary:
-                    return new EnemyData(EnemyType.Legendary, baseHealth * 8, baseSpeed - 40, baseDamage + 10, 100);
+                    return new EnemyData(EnemyType.Legendary, baseHealth * 8, baseSpeed - 40, baseDamage + 10, 10 + baseXP);
 
                 case EnemyType.Boss:
-                    return new EnemyData(EnemyType.Boss, baseHealth * 20, baseSpeed - 70, baseDamage + 20, 500);
+                    return new EnemyData(EnemyType.Boss, baseHealth * 20, baseSpeed - 70, baseDamage + 20, 30 + baseXP);
+
+                case EnemyType.DemonKing:
+                    return new EnemyData(EnemyType.DemonKing, baseHealth * 40, baseSpeed - 80, baseDamage + 40, 50 + baseXP);
+
+                case EnemyType.Mimic:
+                    return new EnemyData(EnemyType.Mimic, (int)preset.PlayerHealth, 200, (int)preset.PlayerStrength, 25 + baseXP);
 
                 default:
                     return new EnemyData(EnemyType.Common, baseHealth, baseSpeed, baseDamage, 10);

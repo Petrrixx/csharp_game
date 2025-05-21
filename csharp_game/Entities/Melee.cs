@@ -10,8 +10,6 @@ namespace VampireSurvivorsClone.Entities
         public float Range = 50f;
         public float Damage = 20f;
         public float Size = 20f;
-
-        // Nové pre efekt zásahu
         public bool ShowHitEffect = false;
         private float hitEffectTimer = 0f;
 
@@ -31,11 +29,11 @@ namespace VampireSurvivorsClone.Entities
             }
         }
 
-        // Zavolaj toto keď dôjde k zásahu
+        // This method is called when the melee attack hits an enemy
         public void TriggerHitEffect()
         {
             ShowHitEffect = true;
-            hitEffectTimer = 0.15f; // efekt trvá 0.15 sekundy
+            hitEffectTimer = 0.15f; // Duration of the hit effect
         }
 
         public void Draw()
@@ -44,7 +42,7 @@ namespace VampireSurvivorsClone.Entities
             Vector2 hitPos = Position + Direction * Range;
             Raylib.DrawCircleV(hitPos, Size, color);
 
-            // Efekt zásahu: prázdny kruh (outline)
+            // Extra hit effect
             if (ShowHitEffect)
             {
                 Raylib.DrawCircleLines((int)hitPos.X, (int)hitPos.Y, Size + 8, Color.WHITE);

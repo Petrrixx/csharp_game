@@ -41,15 +41,22 @@ public class Player
     public float FireCooldown => Math.Max(0.1f, baseFireCooldown - (Dexterity - 1) * 0.05f);
     public float MeleeCooldown => Math.Max(0.2f, baseMeleeCooldown - (Dexterity - 1) * 0.07f);
     public int Luck { get; set; } = 0;
+    private float statBoostTimer = 0f;
+    private bool isStatBoosted = false;
 
-
-    public Player()
+    public Player(DifficultyPreset preset)
     {
         // Center the player
         Position = new Vector2(1280 / 2, 720 / 2);
 
+        // Set player attributes based on difficulty preset
+        Health = (int)preset.PlayerHealth;
+        Strength = (int)preset.PlayerStrength;
+        Agility = (int)preset.PlayerAgility;
+        Dexterity = (int)preset.PlayerDexterity;
+
         // Initialize the player with default values
-        weaponInventory.Add(new WeaponInventoryItem { Name = "Normal Projectile", Level = 2 });
+        weaponInventory.Add(new WeaponInventoryItem { Name = "Normal Projectile", Level = 1 });
 
     }
 
@@ -117,11 +124,22 @@ public class Player
             Raylib.CloseWindow();  // Close the window
             System.Environment.Exit(0);  // Exit the game
         }
+
+        if (isStatBoosted)
+        {
+            statBoostTimer -= Raylib.GetFrameTime();
+            if (statBoostTimer <= 0f)
+            {
+                Strength -= 5;
+                Agility -= 2;
+                Dexterity -= 2;
+                isStatBoosted = false;
+            }
+        }
     }
 
     private void FireProjectile()
     {
-        // Zisti, ktoré zbrane má hráč v inventári
         foreach (var weapon in weaponInventory)
         {
             switch (weapon.Name)
@@ -135,7 +153,9 @@ public class Player
                 case "Explosive Projectile":
                     FireExplosiveProjectile(weapon.Level);
                     break;
-                    // Pridaj ďalšie typy podľa potreby
+                case "Shuriken":
+                    FireShuriken(weapon.Level);
+                    break;
             }
         }
     }
@@ -184,13 +204,46 @@ public class Player
         projectiles.Add(proj);
     }
 
+    private void FireShuriken(int level)
+    {
+        var start = new Vector2(Position.X + size / 2, Position.Y + size / 2);
+        Vector2 moveDir = Input.GetMovementDirection();
+        if (moveDir == Vector2.Zero) moveDir = -FacingDirection; // default direction
+        else moveDir = -Vector2.Normalize(moveDir); // reverse direction
+
+        void AddShuriken(Vector2 d)
+        {
+            var p = new Projectile(start, d, ProjectileType.Shuriken);
+            p.PierceCount = 3; // piercing
+            projectiles.Add(p);
+        }
+
+        AddShuriken(moveDir);
+
+        if (level >= 3)
+        {
+            // Multishot: dva ďalšie pod uhlom ±20°
+            float angle = 20 * (float)(Math.PI / 180);
+            Vector2 left = new Vector2(
+                moveDir.X * (float)Math.Cos(angle) - moveDir.Y * (float)Math.Sin(angle),
+                moveDir.X * (float)Math.Sin(angle) + moveDir.Y * (float)Math.Cos(angle)
+            );
+            Vector2 right = new Vector2(
+                moveDir.X * (float)Math.Cos(-angle) - moveDir.Y * (float)Math.Sin(-angle),
+                moveDir.X * (float)Math.Sin(-angle) + moveDir.Y * (float)Math.Cos(-angle)
+            );
+            AddShuriken(left);
+            AddShuriken(right);
+        }
+    }
+
     private void FireMelee()
     {
         foreach (var weapon in weaponInventory)
         {
             if (weapon.Name == "Melee Attack")
             {
-                // Level 1: základný útok, Level 2+: väčší range/damage
+                // Calculate melee attack properties based on weapon level
                 float range = 50f + 10f * (weapon.Level - 1);
                 float damage = 20f + 5f * (weapon.Level - 1);
                 meleeAttacks.Add(new Melee(Position, FacingDirection) { Range = range, Damage = damage });
@@ -218,11 +271,30 @@ public class Player
         {
             p.Draw();
         }
+
+        // Garlic aura
+        int garlicLevel = GetWeaponLevel("Garlic");
+        if (garlicLevel > 0)
+        {
+            int circleCount = garlicLevel >= 5 ? 3 : (garlicLevel >= 3 ? 2 : 1);
+            float[] radii = circleCount switch
+            {
+                1 => new[] { 60f },
+                2 => new[] { 60f, 90f },
+                3 => new[] { 60f, 90f, 120f },
+                _ => new[] { 60f }
+            };
+            for (int i = 0; i < circleCount; i++)
+            {
+                Raylib.DrawCircleLines((int)Position.X + size / 2, (int)Position.Y + size / 2, radii[i], Color.LIGHTGRAY);
+            }
+        }
     }
 
     public int GetWeaponLevel(string weaponName)
     {
-        var weapon = weaponInventory.FirstOrDefault(w => w.Name == weaponName);
+        var weapon = weaponInventory.FirstOrDefault(w => 
+            string.Equals(w.Name, weaponName, StringComparison.OrdinalIgnoreCase));
         return weapon?.Level ?? 0;
     }
 
@@ -244,6 +316,19 @@ public class Player
             Console.WriteLine("[DEBUG] Inventory full! Cannot add or upgrade weapon.");
         }
     }
-    
+
     public void IncreaseInventorySlot() => MaxWeapons++;
+    
+    public void BoostStats(float duration)
+    {
+        if (!isStatBoosted)
+        {
+            Strength += 5;
+            Agility += 2;
+            Dexterity += 2;
+            Health += 50;
+            isStatBoosted = true;
+            statBoostTimer = duration;
+        }
+    }
 }

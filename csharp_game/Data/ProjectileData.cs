@@ -5,7 +5,8 @@ namespace VampireSurvivorsClone.Data
         Normal,
         Homing,
         Explosive,
-        Piercing
+        Piercing,
+        Shuriken
     }
 
     public class ProjectileData
@@ -35,6 +36,7 @@ namespace VampireSurvivorsClone.Data
                 ProjectileType.Homing => new ProjectileData(ProjectileType.Homing, 300f, 8f, 5f, 10),
                 ProjectileType.Explosive => new ProjectileData(ProjectileType.Explosive, 350f, 10f, 1.5f, 30),
                 ProjectileType.Piercing => new ProjectileData(ProjectileType.Piercing, 450f, 6f, 2.5f, 15),
+                ProjectileType.Shuriken => new ProjectileData(ProjectileType.Shuriken, 500f, 10f, 2f, 12),
                 _ => new ProjectileData(ProjectileType.Normal, 400f, 6f, 2f, 10),
             };
         }

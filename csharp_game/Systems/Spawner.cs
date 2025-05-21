@@ -11,13 +11,15 @@ namespace VampireSurvivorsClone.Systems
         private int screenHeight;
         private List<Enemy> enemies;
         private Player player;
+        private DifficultyPreset preset;
 
-        public Spawner(int screenWidth, int screenHeight, List<Enemy> enemies, Player player)
+        public Spawner(int screenWidth, int screenHeight, List<Enemy> enemies, Player player, DifficultyPreset preset)
         {
             this.screenWidth = screenWidth;
             this.screenHeight = screenHeight;
             this.enemies = enemies;
             this.player = player;
+            this.preset = preset;
         }
 
         // Spawn an enemy based on the current wave number and spawn chance
@@ -27,7 +29,7 @@ namespace VampireSurvivorsClone.Systems
             EnemyType enemyType = GetRandomEnemyType(waveNumber);
 
             // Get the enemy data for the selected type
-            EnemyData enemyData = EnemyData.GetEnemyData(enemyType, waveNumber);
+            EnemyData enemyData = EnemyData.GetEnemyData(enemyType, waveNumber, preset);
 
             // Generate a random spawn position outside of the player's view
             Vector2 spawnPosition = GetRandomSpawnPosition();
@@ -50,6 +52,10 @@ namespace VampireSurvivorsClone.Systems
             {
                 return EnemyType.Boss; // 10% chance to spawn a boss
             }
+            else if (randomValue < 0.05f)
+            {
+                return EnemyType.Mimic; // Mimicking the Player's stats
+            }
             else if (randomValue < 0.2f)
             {
                 return EnemyType.Legendary; // 10% chance to spawn a legendary enemy
@@ -69,12 +75,13 @@ namespace VampireSurvivorsClone.Systems
         }
 
         // Generate a random spawn position for the enemy, ensuring it's outside the player's view
-        private Vector2 GetRandomSpawnPosition()
+        public Vector2 GetRandomSpawnPosition()
         {
             // Get the player's position
             Vector2 playerPos = player.Position;
 
-            // Nastav spawn pásmo (napr. 400 až 900 pixelov od hráča)
+            // Set the spawn area to be a circle around the player
+            // with a minimum and maximum radius
             float minRadius = 400f;
             float maxRadius = 900f;
 

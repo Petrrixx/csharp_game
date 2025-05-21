@@ -7,6 +7,7 @@ using System.Linq;
 using System.Numerics;
 using VampireSurvivorsClone.UI;
 using VampireSurvivorsClone.Systems;
+using System.Formats.Asn1;
 
 namespace VampireSurvivorsClone.Engine
 {
@@ -27,15 +28,22 @@ namespace VampireSurvivorsClone.Engine
         private float spawnInterval = 1f;  // Declare spawn interval for spawning control
         private float spawnTimer = 0f;  // Declare spawn timer for enemy spawning
         private LevelUpMenu levelUpMenu;
+        private DifficultyPreset preset;
+        private bool isBonusWave = false;
+        private bool bossDefeated = false;
+        private float bossDefeatedTimer = 0f;
+        private bool isPaused = false;
 
-        public Game(int sizeW, int sizeH)
+        public Game(int sizeW, int sizeH, DifficultyPreset preset)
         {
             this.sizeW = sizeW;
             this.sizeH = sizeH;
 
-            player = new Player();
+            this.preset = preset;
+
+            player = new Player(preset);
             gameTimer = new Timer();
-            spawner = new Spawner(sizeW, sizeH, enemies, player);  // Initialize the Spawner with screen size and enemies list
+            spawner = new Spawner(sizeW, sizeH, enemies, player, preset);  // Initialize the Spawner with screen size and enemies list + preset
             levelUpMenu = new LevelUpMenu(player);  // Initialize the LevelUpMenu with the player
 
             camera = new Camera2D
@@ -52,16 +60,56 @@ namespace VampireSurvivorsClone.Engine
 
         public void Update()
         {
-            // Ak je aktívne level up menu, update iba menu a return
+            // Pause toggle
+            if (Raylib.IsKeyPressed(KeyboardKey.KEY_P) && !levelUpMenu.IsActive && !isWaveChanging)
+            {
+                isPaused = !isPaused;
+            }
+
+            if (isPaused)
+            {
+                // E = Quit Game
+                if (Raylib.IsKeyPressed(KeyboardKey.KEY_E))
+                {
+                    Raylib.CloseWindow();
+                    System.Environment.Exit(0);
+                }
+                return;
+            }
+
+            // Check if the game is paused by Level Up Menu
             if (levelUpMenu.IsActive)
             {
                 levelUpMenu.Update();
                 return;
             }
 
+            // Update the player
             if (!isWaveChanging)
             {
                 player.Update();
+            }
+
+            // Update the game timer
+            if (isBonusWave)
+            {
+                // Handle the bonus wave
+                if (enemies.Count == 0 && !bossDefeated)
+                {
+                    bossDefeated = true;
+                    bossDefeatedTimer = 5f;
+                    player.BoostStats(120f); // 2 minutes of boosted stats
+                }
+                if (bossDefeated)
+                {
+                    bossDefeatedTimer -= Raylib.GetFrameTime();
+                    if (bossDefeatedTimer <= 0f)
+                    {
+                        isBonusWave = false;
+                        isWaveChanging = false;
+                    }
+                }
+                return;
             }
 
             gameTimer.Update(Raylib.GetFrameTime());
@@ -70,23 +118,34 @@ namespace VampireSurvivorsClone.Engine
             if (gameTimer.IsWaveReady && !isWaveChanging)
             {
                 isWaveChanging = true;
-                waveNumber++;  // Increment the wave number
-                spawnChance += 0.1f;  // Increase spawn chance for next wave
-                spawnInterval = Math.Max(0.5f, spawnInterval - 0.1f);  // Faster spawn interval
-                gameTimer.Reset(30f);  // Reset timer for the next wave
+                waveNumber++;
+                spawnChance += 0.1f;
+                spawnInterval = Math.Max(0.5f, spawnInterval - 0.1f);
+                gameTimer.Reset(30f);
 
                 // Remove all existing entities for the new wave
                 enemies.Clear();
                 player.Projectiles.Clear();
                 xpGems.Clear();
 
-                // Spawn new enemies for the next wave
-                spawner.SpawnEnemy(waveNumber);
+                // BONUS WAVE: 5% chance to spawn Demon King
+                isBonusWave = false;
+                bossDefeated = false;
+                bossDefeatedTimer = 0f;
+                if (new Random().NextDouble() < 0.05)
+                {
+                    isBonusWave = true;
+                    // Spawn Demon King using spawner's GetRandomSpawnPosition
+                    var demonKingData = EnemyData.GetEnemyData(EnemyType.DemonKing, waveNumber, preset);
+                    Vector2 bossSpawn = spawner.GetRandomSpawnPosition();
+                    enemies.Add(new Enemy(bossSpawn, demonKingData));
+                }
+                else
+                {
+                    spawner.SpawnEnemy(waveNumber);
+                }
 
-                // Reset player position to the center of the screen
-                player.Position = new Vector2(sizeW / 2, sizeH / 2); // Reset player position to center using defined window sizes
-
-                // Display wave transition
+                player.Position = new Vector2(sizeW / 2, sizeH / 2);
                 DisplayWaveTransition();
             }
 
@@ -104,7 +163,7 @@ namespace VampireSurvivorsClone.Engine
                 enemy.Update(player, Raylib.GetFrameTime());  // Pass player position and delta time
             }
 
-            // Bullet-enemy collision and gem collection
+            // Projectile-enemy collision
             foreach (var enemy in enemies.ToList())
             {
                 foreach (var proj in player.Projectiles)
@@ -113,18 +172,33 @@ namespace VampireSurvivorsClone.Engine
                     {
                         if (proj.TypeValue == ProjectileType.Explosive)
                         {
-                            // AoE damage: poškodenie všetkým nepriateľom v okruhu
                             foreach (var aoeEnemy in enemies)
                             {
-                                if (Vector2.Distance(proj.Position, aoeEnemy.Position) < 60f) // polomer výbuchu
+                                if (Vector2.Distance(proj.Position, aoeEnemy.Position) < 60f)
                                     aoeEnemy.TakeDamage(proj.DamageValue + player.Strength);
+                            }
+                            proj.Lifetime = 0;
+                        }
+                        else if (proj.TypeValue == ProjectileType.Shuriken)
+                        {
+                            // Shuriken logic: if it hits an enemy, it will pierce through and continue
+                            if (proj.HitEnemies == null)
+                                proj.HitEnemies = new HashSet<Enemy>();
+
+                            if (!proj.HitEnemies.Contains(enemy))
+                            {
+                                enemy.TakeDamage(proj.DamageValue + player.Strength);
+                                proj.HitEnemies.Add(enemy);
+                                proj.PierceCount--;
+                                if (proj.PierceCount <= 0)
+                                    proj.Lifetime = 0;
                             }
                         }
                         else
                         {
                             enemy.TakeDamage(proj.DamageValue + player.Strength);
+                            proj.Lifetime = 0;
                         }
-                        proj.Lifetime = 0;
                     }
                 }
             }
@@ -195,8 +269,41 @@ namespace VampireSurvivorsClone.Engine
             if (player.XP >= xpNeeded)
             {
                 levelUpMenu.Open();
-                playerXP -= xpNeeded;    
-                player.XP -= xpNeeded;     
+                playerXP -= xpNeeded;
+                player.XP -= xpNeeded;
+            }
+            
+            if (player.WeaponInventory.Any(w => w.Name == "Garlic"))
+            {
+                int garlicLevel = player.GetWeaponLevel("Garlic");
+                // Garlic damage and radius based on level
+                int circleCount = garlicLevel >= 5 ? 3 : (garlicLevel >= 3 ? 2 : 1);
+                float[] radii = circleCount switch
+                {
+                    1 => new[] { 60f },
+                    2 => new[] { 60f, 90f },
+                    3 => new[] { 60f, 90f, 120f },
+                    _ => new[] { 60f }
+                };
+                float[] dps = circleCount switch
+                {
+                    1 => new[] { 5f + (garlicLevel - 1) * 2f },
+                    2 => new[] { 7f, 10f },
+                    3 => new[] { 10f, 15f, 20f },
+                    _ => new[] { 5f }
+                };
+
+                // Apply damage to enemies within the garlic circles
+                for (int i = 0; i < circleCount; i++)
+                {
+                    foreach (var enemy in enemies)
+                    {
+                        if (enemy.IsAlive && Vector2.Distance(player.Position, enemy.Position) < radii[i])
+                        {
+                            enemy.TakeDamage((int)(dps[i] * Raylib.GetFrameTime()));
+                        }
+                    }
+                }
             }
         }
 
@@ -205,6 +312,30 @@ namespace VampireSurvivorsClone.Engine
             if (levelUpMenu.IsActive)
             {
                 levelUpMenu.Draw();
+                return;
+            }
+
+            // Second priority, we cant quit during Level Up Menu
+            if (isPaused)
+            {
+                Raylib.BeginDrawing();
+                Raylib.ClearBackground(Color.DARKGRAY);
+                // Blur effect can be simulated with a semi-transparent rectangle
+                Raylib.DrawRectangle(0, 0, Raylib.GetScreenWidth(), Raylib.GetScreenHeight(), new Color(0, 0, 0, 180));
+                Raylib.DrawText("GAME PAUSED", 480, 300, 50, Color.YELLOW);
+                Raylib.DrawText("Press E to return to Quit Game", 420, 400, 30, Color.LIGHTGRAY);
+                Raylib.EndDrawing();
+                return;
+            }
+
+            if (isBonusWave)
+            {
+                Raylib.BeginDrawing();
+                Raylib.ClearBackground(Color.DARKGRAY);
+                Raylib.DrawText("Defeat the Boss", 480, 20, 40, Color.RED);
+                if (bossDefeated)
+                    Raylib.DrawText("Boss Defeated! All your stats are boosted for 2 minutes.", 200, 100, 30, Color.GOLD);
+                Raylib.EndDrawing();
                 return;
             }
 

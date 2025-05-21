@@ -1,24 +1,32 @@
 ﻿using Raylib_cs;
 using VampireSurvivorsClone.Engine;
+using VampireSurvivorsClone.UI;
+using VampireSurvivorsClone.Data;
 
 public class Program
 {
     public static void Main()
     {
-        // Get the user's screen resolution
-        var screenWidth = 1280;  // Get screen width
-        var screenHeight = 720; // Get screen height
-
-        // Set the window size to the screen resolution
+        var screenWidth = 1280;
+        var screenHeight = 720;
         Raylib.InitWindow(screenWidth, screenHeight, "Vampire Survivors Clone");
+        Raylib.SetTargetFPS(60);
 
-        // Optionally enable fullscreen by default
-        //Raylib.ToggleFullscreen();  // Enable fullscreen mode
+        // Main menu loop
+        var menu = new MainMenu();
+        while (!Raylib.WindowShouldClose() && !menu.StartGame)
+        {
+            menu.Update();
+            menu.Draw();
+        }
+        if (Raylib.WindowShouldClose()) return;
 
-        // Create a new game with the screen size
-        Game game = new Game(screenWidth, screenHeight);
+        // Get chosen difficulty
+        Difficulty diff = menu.ChosenDifficulty;
+        var preset = DifficultyPreset.Get(diff);
 
-        Raylib.SetTargetFPS(60); // Set FPS to 60
+        // Pass preset to Game
+        Game game = new Game(screenWidth, screenHeight, preset);
 
         while (!Raylib.WindowShouldClose())
         {
