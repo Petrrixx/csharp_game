@@ -1,0 +1,189 @@
+using System.Collections.ObjectModel;
+using System.Windows.Input;
+using GameLauncher.Helpers;
+using System.IO;
+using System.Text.Json;
+using System.Linq;
+using System.Windows.Threading;
+using System.Windows;
+using Raylib_cs;
+using System.Runtime.CompilerServices;
+using System.ComponentModel;
+
+namespace GameLauncher.ViewModels
+{
+    public class KeyBindingsViewModel : BaseViewModel
+    {
+        public ObservableCollection<KeyBindingVM> KeyBindings { get; set; }
+
+        public ICommand SaveCommand { get; }
+        public ICommand CancelCommand { get; }
+        public ICommand SetKeyCommand { get; }
+
+        public ObservableCollection<string> InputDevices { get; } = new() { "Keyboard", "Gamepad" };
+        private string _selectedInputDevice = "Keyboard";
+        public string SelectedInputDevice
+        {
+            get => _selectedInputDevice;
+            set
+            {
+                _selectedInputDevice = value;
+                OnPropertyChanged();
+            }
+        }
+
+        private string? _waitingForAction = null;
+        public bool IsWaitingForKey => _waitingForAction != null;
+        public string WaitingForText => IsWaitingForKey ? $"Press a {(SelectedInputDevice == "Keyboard" ? "key" : "gamepad button")} for '{_waitingForAction}'..." : "";
+
+        private DispatcherTimer _gamepadTimer;
+
+        private bool _raylibWindowOpened = false;
+
+        public KeyBindingsViewModel()
+        {
+            KeyBindings = new ObservableCollection<KeyBindingVM>
+            {
+                new KeyBindingVM("MoveUp", "W", "GAMEPAD_BUTTON_LEFT_FACE_UP"),
+                new KeyBindingVM("MoveDown", "S", "GAMEPAD_BUTTON_LEFT_FACE_DOWN"),
+                new KeyBindingVM("MoveLeft", "A", "GAMEPAD_BUTTON_LEFT_FACE_LEFT"),
+                new KeyBindingVM("MoveRight", "D", "GAMEPAD_BUTTON_LEFT_FACE_RIGHT"),
+                new KeyBindingVM("Confirm", "Enter", "GAMEPAD_BUTTON_RIGHT_FACE_DOWN"),
+                new KeyBindingVM("Pause", "P", "GAMEPAD_BUTTON_MIDDLE_RIGHT"),
+                new KeyBindingVM("Quit", "Escape", "GAMEPAD_BUTTON_MIDDLE_LEFT")
+            };
+
+            SaveCommand = new RelayCommand(_ => SaveKeyBindings());
+            CancelCommand = new RelayCommand(_ => Cancel());
+            SetKeyCommand = new RelayCommand(param => { if (param is string s) StartKeyCapture(s); });
+
+            _gamepadTimer = new DispatcherTimer { Interval = System.TimeSpan.FromMilliseconds(50) };
+            _gamepadTimer.Tick += GamepadTimer_Tick;
+        }
+
+        private void SaveKeyBindings()
+        {
+            // Ulož keybindingy do JSON
+            var json = JsonSerializer.Serialize(KeyBindings.Select(k => k.ToModel()).ToList());
+            File.WriteAllText("keybindings.json", json);
+        }
+
+        private void Cancel()
+        {
+            // Logic to cancel changes, napr. zavrieť okno
+            Application.Current.Windows
+                .OfType<Window>()
+                .FirstOrDefault(w => w.DataContext == this)
+                ?.Close();
+        }
+
+        private async void StartKeyCapture(string action)
+        {
+            _waitingForAction = action;
+            OnPropertyChanged(nameof(IsWaitingForKey));
+            OnPropertyChanged(nameof(WaitingForText));
+
+            if (SelectedInputDevice == "Gamepad")
+            {
+                if (!_raylibWindowOpened)
+                {
+                    Raylib.InitWindow(1, 1, "InputCapture");
+                    _raylibWindowOpened = true;
+                }
+
+                await System.Threading.Tasks.Task.Run(() =>
+                {
+                    bool captured = false;
+                    while (!captured && !Raylib.WindowShouldClose())
+                    {
+                        Raylib.BeginDrawing();
+                        Raylib.ClearBackground(Color.BLANK); // povinné pre Raylib event loop
+
+                        for (int btn = 0; btn <= (int)GamepadButton.GAMEPAD_BUTTON_RIGHT_THUMB; btn++)
+                        {
+                            if (Raylib.IsGamepadButtonPressed(0, (GamepadButton)btn))
+                            {
+                                // Zachyť meno tlačidla
+                                string buttonName = ((GamepadButton)btn).ToString();
+                                // Musíš použiť Dispatcher, lebo si v background threade
+                                Application.Current.Dispatcher.Invoke(() => SetKeyForAction(buttonName));
+                                captured = true;
+                                break;
+                            }
+                        }
+
+                        Raylib.EndDrawing();
+                        System.Threading.Thread.Sleep(10); // šetri CPU
+                    }
+                });
+
+                if (_raylibWindowOpened)
+                {
+                    Raylib.CloseWindow();
+                    _raylibWindowOpened = false;
+                }
+            }
+        }
+
+        private void GamepadTimer_Tick(object? sender, System.EventArgs e)
+        {
+            if (SelectedInputDevice != "Gamepad" || !IsWaitingForKey)
+                return;
+
+            for (int btn = 0; btn <= (int)GamepadButton.GAMEPAD_BUTTON_RIGHT_THUMB; btn++)
+            {
+                if (Raylib.IsGamepadButtonPressed(0, (GamepadButton)btn))
+                {
+                    SetKeyForAction(((GamepadButton)btn).ToString());
+                    break;
+                }
+            }
+        }
+
+        public void SetKeyForAction(string key)
+        {
+            var binding = KeyBindings.FirstOrDefault(b => b.Action == _waitingForAction);
+            if (binding != null)
+            {
+                if (SelectedInputDevice == "Keyboard")
+                    binding.Key = key;
+                else
+                    binding.Gamepad = key;
+            }
+            _waitingForAction = null;
+            OnPropertyChanged(nameof(KeyBindings));
+            OnPropertyChanged(nameof(IsWaitingForKey));
+            OnPropertyChanged(nameof(WaitingForText));
+            _gamepadTimer.Stop();
+        }
+    }
+
+    public class KeyBindingVM : BaseViewModel
+    {
+        public string Action { get; }
+        private string _key;
+        private string _gamepad;
+
+        public string Key
+        {
+            get => _key;
+            set { _key = value; OnPropertyChanged(); OnPropertyChanged(nameof(DisplayKey)); }
+        }
+        public string Gamepad
+        {
+            get => _gamepad;
+            set { _gamepad = value; OnPropertyChanged(); OnPropertyChanged(nameof(DisplayKey)); }
+        }
+
+        public string DisplayKey => (App.Current?.MainWindow?.DataContext as KeyBindingsViewModel)?.SelectedInputDevice == "Gamepad" ? Gamepad : Key;
+
+        public KeyBindingVM(string action, string key, string gamepad)
+        {
+            Action = action;
+            _key = key;
+            _gamepad = gamepad;
+        }
+
+        public GameLauncher.Models.KeyBinding ToModel() => new() { Action = Action, Key = Key, Gamepad = Gamepad };
+    }
+}
