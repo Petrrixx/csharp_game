@@ -14,6 +14,11 @@ public class Player
         set => baseSpeed = value;
     }
     private int size = 32;
+    public int SizeValue
+    {
+        get => size;
+        set => size = value;
+    }
     private float baseFireCooldown = 0.5f; // Cooldown time in seconds
     private float fireTimer = 0f; // Timer for firing projectiles
     private int health = 50; // Player's health

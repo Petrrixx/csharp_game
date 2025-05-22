@@ -4,6 +4,7 @@ using System.Linq;
 using System.Collections.Generic;
 using VampireSurvivorsClone.Entities;
 using VampireSurvivorsClone.Data;
+using VampireSurvivorsClone.Engine;
 
 namespace VampireSurvivorsClone.UI
 {
@@ -36,11 +37,11 @@ namespace VampireSurvivorsClone.UI
             if (!isActive) return;
 
             // Navigation
-            if (Raylib.IsKeyPressed(KeyboardKey.KEY_RIGHT)) selected = (selected + 1) % 3;
-            if (Raylib.IsKeyPressed(KeyboardKey.KEY_LEFT)) selected = (selected + 2) % 3;
+            if (Input.IsActionPressed("MoveRight")) selected = (selected + 1) % 3;
+            if (Input.IsActionPressed("MoveLeft")) selected = (selected + 2) % 3;
 
             // Confirm selection
-            if (Raylib.IsKeyPressed(KeyboardKey.KEY_ENTER))
+            if (Input.IsActionPressed("Confirm"))
             {
                 ApplyOption(options[selected]);
                 isActive = false;
@@ -95,7 +96,7 @@ namespace VampireSurvivorsClone.UI
 
             // Filter out already maxed weapons (stat upgrades are not filtered)
             pool.RemoveAll(x =>
-                x.Type == UpgradeType.Weapon && player.GetWeaponLevel(x.Weapon) >= 5
+                x.Type == UpgradeType.Weapon && x.Weapon != null && player.GetWeaponLevel(x.Weapon) >= 5
             );
 
             // Shuffle and pick 3
@@ -129,7 +130,10 @@ namespace VampireSurvivorsClone.UI
             }
             else if (option.Type == UpgradeType.Weapon)
             {
-                player.AddOrUpgradeWeapon(option.Weapon);
+                if (option.Weapon != null)
+                {
+                    player.AddOrUpgradeWeapon(option.Weapon);
+                }
             }
             player.Level++;
             player.XP = 0; // Reset XP after level up
@@ -139,9 +143,9 @@ namespace VampireSurvivorsClone.UI
         private class UpgradeOption
         {
             public UpgradeType Type;
-            public string Stat;
-            public string Weapon;
-            public string Description;
+            public string? Stat;
+            public string? Weapon;
+            public string? Description;
         }
         private enum UpgradeType { Stat, Weapon }
     }

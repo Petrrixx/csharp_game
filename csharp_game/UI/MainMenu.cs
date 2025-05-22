@@ -14,16 +14,16 @@ public class MainMenu
 
     public void Update()
     {
-        if (Raylib.IsKeyPressed(KeyboardKey.KEY_W)) selected = (selected + 2) % 3;
-        if (Raylib.IsKeyPressed(KeyboardKey.KEY_S)) selected = (selected + 1) % 3;
+        if (Input.IsActionPressed("MoveUp")) selected = (selected + 2) % 3;
+        if (Input.IsActionPressed("MoveDown")) selected = (selected + 1) % 3;
 
         if (selected == 1) // Difficulty
         {
-            if (Raylib.IsKeyPressed(KeyboardKey.KEY_LEFT)) selectedDifficulty = (selectedDifficulty + 2) % 3;
-            if (Raylib.IsKeyPressed(KeyboardKey.KEY_RIGHT)) selectedDifficulty = (selectedDifficulty + 1) % 3;
+            if (Input.IsActionPressed("MoveLeft")) selectedDifficulty = (selectedDifficulty + 2) % 3;
+            if (Input.IsActionPressed("MoveRight")) selectedDifficulty = (selectedDifficulty + 1) % 3;
         }
 
-        if (Raylib.IsKeyPressed(KeyboardKey.KEY_ENTER))
+        if (Input.IsActionPressed("Confirm"))
         {
             if (selected == 0) StartGame = true;
             if (selected == 2) Raylib.CloseWindow();

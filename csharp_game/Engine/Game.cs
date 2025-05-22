@@ -61,7 +61,7 @@ namespace VampireSurvivorsClone.Engine
         public void Update()
         {
             // Pause toggle
-            if (Raylib.IsKeyPressed(KeyboardKey.KEY_P) && !levelUpMenu.IsActive && !isWaveChanging)
+            if (Input.IsActionPressed("Pause") && !levelUpMenu.IsActive && !isWaveChanging)
             {
                 isPaused = !isPaused;
             }
@@ -69,7 +69,7 @@ namespace VampireSurvivorsClone.Engine
             if (isPaused)
             {
                 // E = Quit Game
-                if (Raylib.IsKeyPressed(KeyboardKey.KEY_E))
+                if (Input.isActionPressed("Quit"))
                 {
                     Raylib.CloseWindow();
                     System.Environment.Exit(0);
@@ -96,9 +96,12 @@ namespace VampireSurvivorsClone.Engine
                 // Handle the bonus wave
                 if (enemies.Count == 0 && !bossDefeated)
                 {
-                    bossDefeated = true;
-                    bossDefeatedTimer = 5f;
-                    player.BoostStats(120f); // 2 minutes of boosted stats
+                    // Spawn Demon King
+                    var demonKingData = EnemyData.GetEnemyData(EnemyType.DemonKing, waveNumber, preset);
+                    Vector2 bossSpawn = spawner.GetRandomSpawnPosition();
+                    enemies.Add(new Enemy(bossSpawn, demonKingData));
+                    // Ak treba, resetni hráča do stredu
+                    player.Position = new Vector2(sizeW / 2, sizeH / 2);
                 }
                 if (bossDefeated)
                 {

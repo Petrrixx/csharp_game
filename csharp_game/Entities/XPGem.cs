@@ -18,7 +18,9 @@ public class XpGem
 
     public void Update(Vector2 playerPos)
     {
-        if (Vector2.Distance(playerPos, Position) < 20f)
+        float playerRadius = Player.SizeValue;
+        float gemRadius = size;
+        if (Vector2.Distance(playerPos, Position) < playerRadius + gemRadius)
         {
             IsCollected = true;
         }

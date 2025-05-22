@@ -2,38 +2,79 @@
 using VampireSurvivorsClone.Engine;
 using VampireSurvivorsClone.UI;
 using VampireSurvivorsClone.Data;
+using VampireSurvivorsClone;
+using System.IO;
+using System.Text.Json;
 
 public class Program
 {
-    public static void Main()
+    public static void Main(string[] args)
     {
-        var screenWidth = 1280;
-        var screenHeight = 720;
-        Raylib.InitWindow(screenWidth, screenHeight, "Vampire Survivors Clone");
-        Raylib.SetTargetFPS(60);
-
-        // Main menu loop
-        var menu = new MainMenu();
-        while (!Raylib.WindowShouldClose() && !menu.StartGame)
+        try
         {
-            menu.Update();
-            menu.Draw();
+            // Set up the game window and default values
+            Raylib.SetConfigFlags(ConfigFlags.FLAG_WINDOW_RESIZABLE);
+            Raylib.SetConfigFlags(ConfigFlags.FLAG_MSAA_4X_HINT);
+            Raylib.SetConfigFlags(ConfigFlags.FLAG_VSYNC_HINT);
+            {
+                // Default values
+                var screenWidth = 1280;
+                var screenHeight = 720;
+                var difficulty = Difficulty.Normal;
+                bool fullscreen = false;
+
+                // Parse args
+                if (args.Length >= 1)
+                    Enum.TryParse(args[0], true, out difficulty);
+                if (args.Length >= 3)
+                {
+                    int.TryParse(args[1], out screenWidth);
+                    int.TryParse(args[2], out screenHeight);
+                }
+                if (args.Length >= 4)
+                    fullscreen = args[3].ToLower() == "fullscreen";
+
+                Raylib.InitWindow(screenWidth, screenHeight, "Vampire Survivors Clone");
+                if (fullscreen)
+                    Raylib.ToggleFullscreen();
+                Raylib.SetTargetFPS(60);
+
+                // Main menu loop
+                var menu = new MainMenu();
+                while (!Raylib.WindowShouldClose() && !menu.StartGame)
+                {
+                    menu.Update();
+                    menu.Draw();
+                }
+                if (Raylib.WindowShouldClose()) return;
+
+                // Get chosen difficulty
+                Difficulty diff = difficulty;
+                var preset = DifficultyPreset.Get(diff);
+
+                // Pass preset to Game
+                Game game = new Game(screenWidth, screenHeight, preset);
+                Input.LoadKeyBindings();
+                string inputDevice = "Keyboard";
+                if (File.Exists("gamesettings.json"))
+                {
+                    var settings = JsonSerializer.Deserialize<GameSettings>(File.ReadAllText("gamesettings.json"));
+                    inputDevice = settings.InputDevice;
+                }
+                Input.CurrentDevice = inputDevice == "Gamepad" ? Input.InputDevice.Gamepad : Input.InputDevice.Keyboard;
+                while (!Raylib.WindowShouldClose())
+                {
+                    game.Update();
+                    game.Draw();
+                }
+
+                Raylib.CloseWindow();
+            }
         }
-        if (Raylib.WindowShouldClose()) return;
-
-        // Get chosen difficulty
-        Difficulty diff = menu.ChosenDifficulty;
-        var preset = DifficultyPreset.Get(diff);
-
-        // Pass preset to Game
-        Game game = new Game(screenWidth, screenHeight, preset);
-
-        while (!Raylib.WindowShouldClose())
+        catch (Exception ex)
         {
-            game.Update();
-            game.Draw();
+            File.WriteAllText("crashlog.txt", ex.ToString());
+            throw;
         }
-
-        Raylib.CloseWindow();
     }
 }

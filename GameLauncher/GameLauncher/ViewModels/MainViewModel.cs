@@ -77,23 +77,17 @@ namespace GameLauncher.ViewModels
 
         private void StartGame()
         {
-            string difficulty = this.SelectedDifficulty ?? "Normal";
-            int width = this.ScreenWidth;
-            int height = this.ScreenHeight;
-            bool fullscreen = this.IsFullscreen;
+            GameSettings? settings = null;
+            if (File.Exists("gamesettings.json"))
+                settings = JsonSerializer.Deserialize<GameSettings>(File.ReadAllText("gamesettings.json"));
+            if (settings == null)
+                settings = new GameSettings(); // default
 
-            // Save game settings
-            var settings = new GameSettings
-            {
-                Difficulty = difficulty,
-                ScreenWidth = width,
-                ScreenHeight = height,
-                IsFullscreen = fullscreen,
-                InputDevice = "Keyboard" // or "Gamepad", based on user selection
-            };
-            File.WriteAllText("gamesettings.json", JsonSerializer.Serialize(settings));
+            string difficulty = settings.Difficulty ?? "Normal";
+            int width = settings.ScreenWidth;
+            int height = settings.ScreenHeight;
+            bool fullscreen = settings.IsFullscreen;
 
-            // Start the Raylib game with parameters
             var psi = new ProcessStartInfo
             {
                 FileName = @"..\..\csharp_game\bin\Debug\net9.0\csharp_game.exe",

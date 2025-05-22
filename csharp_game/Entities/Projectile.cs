@@ -30,14 +30,15 @@ namespace VampireSurvivorsClone.Entities
             Size = data.Size;
             Damage = data.Damage;
             Type = type;
+            HitEnemies = new HashSet<Enemy>();
         }
 
-        public void Update(float deltaTime, List<Enemy> enemies = null)
+        public void Update(float deltaTime, List<Enemy>? enemies = null)
         {
             if (Type == ProjectileType.Homing && enemies != null && enemies.Count > 0)
             {
                 // Find the closest enemy
-                Enemy closest = null;
+                Enemy? closest = null;
                 float minDist = float.MaxValue;
                 foreach (var e in enemies)
                 {
