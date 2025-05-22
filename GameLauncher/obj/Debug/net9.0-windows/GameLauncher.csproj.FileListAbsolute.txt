@@ -1,0 +1,15 @@
+C:\Users\peter\Downloads\csharp_game-1\GameLauncher\obj\Debug\net9.0-windows\GameLauncher\App.baml
+C:\Users\peter\Downloads\csharp_game-1\GameLauncher\obj\Debug\net9.0-windows\GameLauncher\MainWindow.baml
+C:\Users\peter\Downloads\csharp_game-1\GameLauncher\obj\Debug\net9.0-windows\GameLauncher\Views\KeyBindingsView.baml
+C:\Users\peter\Downloads\csharp_game-1\GameLauncher\obj\Debug\net9.0-windows\GameLauncher\Views\SettingsView.baml
+C:\Users\peter\Downloads\csharp_game-1\GameLauncher\obj\Debug\net9.0-windows\GameLauncher\App.g.cs
+C:\Users\peter\Downloads\csharp_game-1\GameLauncher\obj\Debug\net9.0-windows\GameLauncher\MainWindow.g.cs
+C:\Users\peter\Downloads\csharp_game-1\GameLauncher\obj\Debug\net9.0-windows\GameLauncher\Views\KeyBindingsView.g.cs
+C:\Users\peter\Downloads\csharp_game-1\GameLauncher\obj\Debug\net9.0-windows\GameLauncher\Views\SettingsView.g.cs
+C:\Users\peter\Downloads\csharp_game-1\GameLauncher\obj\Debug\net9.0-windows\GameLauncher_MarkupCompile.cache
+C:\Users\peter\Downloads\csharp_game-1\GameLauncher\obj\Debug\net9.0-windows\GameLauncher.g.resources
+C:\Users\peter\Downloads\csharp_game-1\GameLauncher\obj\Debug\net9.0-windows\GameLauncher.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\peter\Downloads\csharp_game-1\GameLauncher\obj\Debug\net9.0-windows\GameLauncher.AssemblyInfoInputs.cache
+C:\Users\peter\Downloads\csharp_game-1\GameLauncher\obj\Debug\net9.0-windows\GameLauncher.AssemblyInfo.cs
+C:\Users\peter\Downloads\csharp_game-1\GameLauncher\obj\Debug\net9.0-windows\GameLauncher.csproj.CoreCompileInputs.cache
+C:\Users\peter\Downloads\csharp_game-1\GameLauncher\obj\Debug\net9.0-windows\GameLauncher.sourcelink.json
