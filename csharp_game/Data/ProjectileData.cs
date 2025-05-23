@@ -17,7 +17,6 @@ namespace VampireSurvivorsClone.Data
         public float Lifetime { get; set; }
         public int Damage { get; set; }
 
-        // Constructor for basic projectiles
         public ProjectileData(ProjectileType type, float speed, float size, float lifetime, int damage)
         {
             Type = type;

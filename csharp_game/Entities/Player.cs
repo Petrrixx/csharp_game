@@ -1,6 +1,7 @@
 using Raylib_cs;
 using System.Numerics;
 using VampireSurvivorsClone.Data;
+using VampireSurvivorsClone.Engine;
 
 namespace VampireSurvivorsClone.Entities;
 
@@ -223,7 +224,7 @@ public class Player
 
         if (level >= 3)
         {
-            // Multishot: dva ďalšie pod uhlom ±20°
+            // Multishot: two more - ±20°
             float angle = 20 * (float)(Math.PI / 180);
             Vector2 left = new Vector2(
                 moveDir.X * (float)Math.Cos(angle) - moveDir.Y * (float)Math.Sin(angle),
@@ -331,5 +332,11 @@ public class Player
             isStatBoosted = true;
             statBoostTimer = duration;
         }
+    }
+
+    // Add this method to your Player class
+    public void ClearWeapons()
+    {
+        weaponInventory.Clear();
     }
 }

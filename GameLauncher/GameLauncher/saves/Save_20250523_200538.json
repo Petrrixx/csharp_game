@@ -1,0 +1,31 @@
+{
+  "SaveName": "Save_20250523_200538",
+  "SaveDate": "2025-05-23T20:05:38.446417+02:00",
+  "SaveVersion": "1.0",
+  "WaveNumber": 1,
+  "TimeRemaining": 6.4927263,
+  "PlayerXP": 0,
+  "PlayerLevel": 2,
+  "Player": {
+    "PositionX": -270.09946,
+    "PositionY": 1141.2002,
+    "Health": 45,
+    "Strength": 10,
+    "Agility": 1,
+    "Dexterity": 1,
+    "Luck": 0,
+    "PlayerLevel": 2,
+    "Weapons": [
+      {
+        "Name": "Normal Projectile",
+        "Level": 1
+      },
+      {
+        "Name": "Homing Projectile",
+        "Level": 1
+      }
+    ],
+    "MaxWeapons": 8
+  },
+  "Difficulty": "VampireSurvivorsClone.Data.DifficultyPreset"
+}

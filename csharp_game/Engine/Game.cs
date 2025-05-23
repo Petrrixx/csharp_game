@@ -29,11 +29,20 @@ namespace VampireSurvivorsClone.Engine
         private float spawnTimer = 0f;  // Declare spawn timer for enemy spawning
         private LevelUpMenu levelUpMenu;
         private DifficultyPreset preset;
-        private bool isBonusWave = false;
-        private bool bossDefeated = false;
+        //private bool isBonusWave = false;
+        //private bool bossDefeated = false;
         //private float bossDefeatedTimer = 0f;
         private bool isPaused = false;
         //private bool isBossSpawned = false;  // Track if the boss has been spawned
+
+        // Add these properties to expose needed information
+        public int CurrentWave => waveNumber;
+        public int PlayerLevel => player.Level;
+        public int PlayerXP { get => playerXP; set => playerXP = value; }
+        public DifficultyPreset Preset => preset;
+        public Player PlayerInstance => player;
+        public Timer GameTimer => gameTimer;
+        private PauseMenu pauseMenu;
 
         public Game(int sizeW, int sizeH, DifficultyPreset preset)
         {
@@ -57,7 +66,16 @@ namespace VampireSurvivorsClone.Engine
 
             // Initial wave setup
             spawner.SpawnEnemy(waveNumber);
+
+            // Initialize pause menu
+            pauseMenu = new PauseMenu(this);
         }
+
+        // Method for SaveSystem to set wave number when loading
+        public void SetWaveNumber(int wave) => waveNumber = wave;
+
+        // Method to clear player weapons when loading a save
+        public void ClearPlayerWeapons() => player.ClearWeapons();
 
         public void Update()
         {
@@ -72,12 +90,27 @@ namespace VampireSurvivorsClone.Engine
 
             if (isPaused)
             {
-                // E = Quit Game
-                if (Input.IsActionPressed("Quit"))
+                pauseMenu.Update();
+                
+                // Handle pause menu actions
+                if (pauseMenu.ShouldUnpause)
+                {
+                    isPaused = false;
+                    pauseMenu.ShouldUnpause = false;
+                }
+                
+                if (pauseMenu.ShouldQuitToMenu)
+                {
+                    // Return to main menu
+                    return; // Will be handled by the Program.cs loop
+                }
+                
+                if (pauseMenu.ShouldQuitToDesktop)
                 {
                     Raylib.CloseWindow();
                     System.Environment.Exit(0);
                 }
+                
                 return;
             }
 
@@ -327,27 +360,7 @@ namespace VampireSurvivorsClone.Engine
             // Second priority, we cant quit during Level Up Menu
             if (isPaused)
             {
-                Raylib.BeginDrawing();
-                Raylib.ClearBackground(Color.DARKGRAY);
-                // Blur effect can be simulated with a semi-transparent rectangle
-                Raylib.DrawRectangle(0, 0, Raylib.GetScreenWidth(), Raylib.GetScreenHeight(), new Color(0, 0, 0, 180));
-                Raylib.DrawText("GAME PAUSED", 480, 300, 50, Color.YELLOW);
-                if (Input.CurrentDevice == Input.InputDevice.Keyboard)
-                    Raylib.DrawText("Press E to Quit Game", 480, 400, 30, Color.LIGHTGRAY);
-                else
-                    Raylib.DrawText("Press View button to Quit Game", 420, 400, 30, Color.LIGHTGRAY);
-                Raylib.EndDrawing();
-                return;
-            }
-
-            if (isBonusWave)
-            {
-                Raylib.BeginDrawing();
-                Raylib.ClearBackground(Color.DARKGRAY);
-                Raylib.DrawText("Defeat the Boss", 480, 20, 40, Color.RED);
-                if (bossDefeated)
-                    Raylib.DrawText("Boss Defeated! All your stats are boosted for 2 minutes.", 200, 100, 30, Color.GOLD);
-                Raylib.EndDrawing();
+                pauseMenu.Draw();
                 return;
             }
 
@@ -393,5 +406,7 @@ namespace VampireSurvivorsClone.Engine
             // After the transition, allow the game to continue
             isWaveChanging = false;
         }
+
+        public PauseMenu PauseMenu => pauseMenu;
     }
 }

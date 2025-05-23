@@ -3,13 +3,26 @@ using System.Numerics;
 using System.Text.Json;
 using System.Collections.Generic;
 using System.IO;
+using VampireSurvivorsClone.Data;
 
-namespace VampireSurvivorsClone;
-
+namespace VampireSurvivorsClone.Engine;
 public static class Input
 {
     public enum InputDevice { Keyboard, Gamepad }
-    public static InputDevice CurrentDevice { get; set; } = InputDevice.Keyboard;
+    private static InputDevice _currentDevice = InputDevice.Keyboard;
+    public static InputDevice CurrentDevice 
+    { 
+        get => _currentDevice; 
+        set 
+        { 
+            if (_currentDevice != value)
+            {
+                _currentDevice = value;
+                // Aktualizovať nastavenie v súbore pri zmene zariadenia
+                UpdateGameSettingsFile();
+            }
+        }
+    }
 
     private static Dictionary<string, KeyboardKey> KeyBindings = new();
     private static Dictionary<string, GamepadButton> GamepadBindings = new();
@@ -17,6 +30,32 @@ public static class Input
     static Input()
     {
         LoadKeyBindings();
+    }
+
+    // Metóda na aktualizáciu gamesettings.json
+    private static void UpdateGameSettingsFile()
+    {
+        try
+        {
+            // Správna relatívna cesta k súboru od koreňa projektu
+            string filePath = "..\\..\\..\\..\\GameLauncher\\GameLauncher\\gamesettings.json";
+            
+            // Načítaj existujúce nastavenia ak existujú, inak vytvor nové
+            GameSettings settings = File.Exists(filePath) 
+                ? JsonSerializer.Deserialize<GameSettings>(File.ReadAllText(filePath)) ?? new GameSettings() 
+                : new GameSettings();
+
+            // Aktualizuj InputDevice
+            settings.InputDevice = CurrentDevice == InputDevice.Gamepad ? "Gamepad" : "Keyboard";
+            
+            // Ulož nastavenia jednoducho ako v Save() metóde
+            var json = JsonSerializer.Serialize(settings, new JsonSerializerOptions { WriteIndented = true });
+            File.WriteAllText(filePath, json);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Chyba pri aktualizácii gamesettings.json: {ex.Message}");
+        }
     }
 
     public static void LoadKeyBindings(string path = "keybindings.json")
@@ -31,6 +70,7 @@ public static class Input
             KeyBindings["Confirm"] = KeyboardKey.KEY_ENTER;
             KeyBindings["Pause"] = KeyboardKey.KEY_P;
             KeyBindings["Quit"] = KeyboardKey.KEY_ESCAPE;
+            KeyBindings["Back"] = KeyboardKey.KEY_BACKSPACE;  
 
             // Default gamepad mapping
             GamepadBindings["MoveUp"] = GamepadButton.GAMEPAD_BUTTON_LEFT_FACE_UP;
@@ -40,6 +80,7 @@ public static class Input
             GamepadBindings["Confirm"] = GamepadButton.GAMEPAD_BUTTON_RIGHT_FACE_DOWN; // A
             GamepadBindings["Pause"] = GamepadButton.GAMEPAD_BUTTON_MIDDLE_RIGHT; // Menu
             GamepadBindings["Quit"] = GamepadButton.GAMEPAD_BUTTON_MIDDLE_LEFT; // View
+            GamepadBindings["Back"] = GamepadButton.GAMEPAD_BUTTON_RIGHT_FACE_RIGHT; // B
             return;
         }
 
@@ -102,22 +143,21 @@ public static class Input
 
     public static bool IsActionPressed(string action)
     {
-        if (CurrentDevice == InputDevice.Gamepad && Raylib.IsGamepadAvailable(0))
-        {
-            if (GamepadBindings.TryGetValue(action, out var btn))
-                return Raylib.IsGamepadButtonPressed(0, btn);
-        }
-        else
-        {
-            if (KeyBindings.TryGetValue(action, out var key))
-                return Raylib.IsKeyPressed(key);
-        }
-        return false;
+        bool keyboardPressed = false;
+        bool gamepadPressed = false;
+
+        if (KeyBindings.TryGetValue(action, out var key))
+            keyboardPressed = Raylib.IsKeyPressed(key);
+
+        if (Raylib.IsGamepadAvailable(0) && GamepadBindings.TryGetValue(action, out var btn))
+            gamepadPressed = Raylib.IsGamepadButtonPressed(0, btn);
+
+        return keyboardPressed || gamepadPressed;
     }
 
     public static void UpdateInputDevice()
     {
-        // Ak je gamepad pripojený a stlačíš tlačidlo, prepni na gamepad
+        // If gamepad is available and any button is pressed, switch to gamepad
         if (Raylib.IsGamepadAvailable(0))
         {
             for (int btn = 0; btn <= (int)GamepadButton.GAMEPAD_BUTTON_RIGHT_THUMB; btn++)
@@ -125,16 +165,18 @@ public static class Input
                 if (Raylib.IsGamepadButtonPressed(0, (GamepadButton)btn))
                 {
                     CurrentDevice = InputDevice.Gamepad;
+                    UpdateGameSettingsFile();
                     return;
                 }
             }
         }
-        // Ak stlačíš klávesu, prepni na keyboard
+        // If no gamepad is available or any keyboard key is pressed, switch to keyboard
         for (int key = 32; key < 350; key++)
         {
             if (Raylib.IsKeyPressed((KeyboardKey)key))
             {
                 CurrentDevice = InputDevice.Keyboard;
+                UpdateGameSettingsFile();
                 return;
             }
         }

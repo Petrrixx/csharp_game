@@ -51,25 +51,67 @@ public class Program
                 }
                 Input.CurrentDevice = inputDevice == "Gamepad" ? Input.InputDevice.Gamepad : Input.InputDevice.Keyboard;
 
+            MainMenuStart: // Label for goto statement
                 // Main menu loop
                 var menu = new MainMenu();
-                while (!Raylib.WindowShouldClose() && !menu.StartGame)
+                while (!Raylib.WindowShouldClose() && !menu.StartGame && !menu.LoadGame)
                 {
                     menu.Update();
                     menu.Draw();
                 }
                 if (Raylib.WindowShouldClose()) return;
 
-                // Get chosen difficulty
-                Difficulty diff = difficulty;
-                var preset = DifficultyPreset.Get(diff);
+                // create loadingScreen
+                var loadingScreen = new LoadingScreen();
+                Game? game = null;
 
-                // Pass preset to Game
-                Game game = new Game(screenWidth, screenHeight, preset);
-                while (!Raylib.WindowShouldClose())
+                // Show loading screen while creating game
+                if (menu.LoadGame && menu.SelectedSave != null)
+                {
+                    // Animation loading screen
+                    loadingScreen.ShowForDuration(1.5f);
+                    
+                    // Load Game
+                    Difficulty loadedDifficulty = Difficulty.Normal;
+                    if (Enum.TryParse<Difficulty>(menu.SelectedSave.Difficulty, out var diff))
+                    {
+                        loadedDifficulty = diff;
+                    }
+                    var preset = DifficultyPreset.Get(loadedDifficulty);
+                    game = new Game(screenWidth, screenHeight, preset);
+                    
+                    var saveSystem = new SaveSystem();
+                    saveSystem.LoadGame(game, menu.SelectedSave);
+                }
+                else
+                {
+                    // Loading screen
+                    loadingScreen.ShowForDuration(1.0f);
+                    
+                    // Creating new game
+                    Difficulty diff = menu.ChosenDifficulty;
+                    var preset = DifficultyPreset.Get(diff);
+                    game = new Game(screenWidth, screenHeight, preset);
+                }
+
+                bool returningToMainMenu = false;
+                while (!Raylib.WindowShouldClose() && !returningToMainMenu)
                 {
                     game.Update();
+                    
+                    if (game.PauseMenu != null && game.PauseMenu.ShouldQuitToMenu)
+                    {
+                        returningToMainMenu = true;
+                        loadingScreen.ShowForDuration(1.0f); // Show Loading Screen
+                        continue;
+                    }
+                    
                     game.Draw();
+                }
+
+                if (returningToMainMenu)
+                {
+                    goto MainMenuStart; // Back to Main Menu
                 }
 
                 Raylib.CloseWindow();

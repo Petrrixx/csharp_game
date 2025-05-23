@@ -18,9 +18,8 @@ namespace VampireSurvivorsClone.Entities
         public int XPDrop { get; private set; } = 1;
         private EnemyType type;
         private float shootTimer = 0f;
-        private float shootInterval = 0.5f; // 2 projektily za sekundu
+        private float shootInterval = 0.5f; // 2 seconds between shots
 
-        // Constructor for enemy
         public Enemy(Vector2 spawnPosition, EnemyData data)
         {
             Position = spawnPosition;
@@ -86,8 +85,8 @@ namespace VampireSurvivorsClone.Entities
                 case EnemyType.Common:
                     // Fast, but weak
                     speed += 2f; // Common enemies are faster
-                    if (speed > player.Speed)
-                        speed = player.Speed - 40; // Cap speed to Player's max speed
+                    //if (speed > player.Speed)
+                    //    speed = player.Speed - 40; // Cap speed to Player's max speed
                     if (speed > 150)
                     {
                         speed = 150; // Cap speed to 150

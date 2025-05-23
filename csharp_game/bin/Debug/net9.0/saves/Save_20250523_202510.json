@@ -1,0 +1,31 @@
+{
+  "SaveName": "Save_20250523_202510",
+  "SaveDate": "2025-05-23T20:25:10.1590916+02:00",
+  "SaveVersion": "1.0",
+  "WaveNumber": 2,
+  "TimeRemaining": 16.556253,
+  "PlayerXP": 0,
+  "PlayerLevel": 3,
+  "Player": {
+    "PositionX": 637.16174,
+    "PositionY": 422.6127,
+    "Health": 49,
+    "Strength": 10,
+    "Agility": 1,
+    "Dexterity": 1,
+    "Luck": 0,
+    "PlayerLevel": 3,
+    "Weapons": [
+      {
+        "Name": "Normal Projectile",
+        "Level": 2
+      },
+      {
+        "Name": "Melee Attack",
+        "Level": 1
+      }
+    ],
+    "MaxWeapons": 8
+  },
+  "Difficulty": "Preset"
+}

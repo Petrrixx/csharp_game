@@ -1,0 +1,31 @@
+{
+  "SaveName": "Save_20250523_215408",
+  "SaveDate": "2025-05-23T21:54:08.4052009+02:00",
+  "SaveVersion": "1.0",
+  "WaveNumber": 1,
+  "TimeRemaining": 20.488564,
+  "PlayerXP": 0,
+  "PlayerLevel": 3,
+  "Player": {
+    "PositionX": 978.3852,
+    "PositionY": 508.0227,
+    "Health": 70,
+    "Strength": 10,
+    "Agility": 1,
+    "Dexterity": 1,
+    "Luck": 1,
+    "PlayerLevel": 3,
+    "Weapons": [
+      {
+        "Name": "Normal Projectile",
+        "Level": 1
+      },
+      {
+        "Name": "Homing Projectile",
+        "Level": 1
+      }
+    ],
+    "MaxWeapons": 8
+  },
+  "Difficulty": "Preset"
+}

@@ -11,7 +11,7 @@ namespace GameLauncher.Helpers
         public RelayCommand(Action<object> execute, Func<object, bool>? canExecute = null)
         {
             this.execute = execute ?? throw new ArgumentNullException(nameof(execute));
-            this.canExecute = canExecute ?? (_ => true); // Default na true
+            this.canExecute = canExecute ?? (_ => true); // Default true
         }
 
         public bool CanExecute(object? parameter)

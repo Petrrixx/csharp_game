@@ -15,7 +15,6 @@ namespace VampireSurvivorsClone.Data
         public float Cooldown { get; set; }
         public string Texture { get; set; }  // This will be used to store texture paths or texture names when textures are added
 
-        // Constructor for melee attacks
         public MeleeData(MeleeType type, float damage, float range, float cooldown, string texture)
         {
             Type = type;

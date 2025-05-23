@@ -1,0 +1,27 @@
+{
+  "SaveName": "Save_20250523_200612",
+  "SaveDate": "2025-05-23T20:06:12.6420326+02:00",
+  "SaveVersion": "1.0",
+  "WaveNumber": 1,
+  "TimeRemaining": 25.266476,
+  "PlayerXP": 5,
+  "PlayerLevel": 1,
+  "Player": {
+    "PositionX": 532.3676,
+    "PositionY": 398.4447,
+    "Health": 70,
+    "Strength": 10,
+    "Agility": 1,
+    "Dexterity": 1,
+    "Luck": 0,
+    "PlayerLevel": 1,
+    "Weapons": [
+      {
+        "Name": "Normal Projectile",
+        "Level": 1
+      }
+    ],
+    "MaxWeapons": 8
+  },
+  "Difficulty": "VampireSurvivorsClone.Data.DifficultyPreset"
+}

@@ -1,0 +1,39 @@
+{
+  "SaveName": "Save_20250523_215346",
+  "SaveDate": "2025-05-23T21:53:46.1484798+02:00",
+  "SaveVersion": "1.0",
+  "WaveNumber": 3,
+  "TimeRemaining": 9.929382,
+  "PlayerXP": 16,
+  "PlayerLevel": 6,
+  "Player": {
+    "PositionX": 2034.9932,
+    "PositionY": 654.0324,
+    "Health": 49,
+    "Strength": 10,
+    "Agility": 1,
+    "Dexterity": 1,
+    "Luck": 0,
+    "PlayerLevel": 6,
+    "Weapons": [
+      {
+        "Name": "Normal Projectile",
+        "Level": 3
+      },
+      {
+        "Name": "Melee Attack",
+        "Level": 1
+      },
+      {
+        "Name": "Shuriken",
+        "Level": 1
+      },
+      {
+        "Name": "Explosive Projectile",
+        "Level": 1
+      }
+    ],
+    "MaxWeapons": 8
+  },
+  "Difficulty": "Preset"
+}

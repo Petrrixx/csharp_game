@@ -79,14 +79,14 @@ namespace GameLauncher.ViewModels
 
         private void SaveKeyBindings()
         {
-            // Ulož keybindingy do JSON
+            // Save keybindings to JSON
             var json = JsonSerializer.Serialize(KeyBindings.Select(k => k.ToModel()).ToList());
             File.WriteAllText("keybindings.json", json);
         }
 
         private void Cancel()
         {
-            // Zatvorí okno, ktoré hostí tento viewmodel cez UserControl
+            // Closes the window
             foreach (Window window in Application.Current.Windows)
             {
                 if (window.Content is FrameworkElement fe && fe.DataContext == this)
@@ -117,15 +117,14 @@ namespace GameLauncher.ViewModels
                     while (!captured && !Raylib.WindowShouldClose())
                     {
                         Raylib.BeginDrawing();
-                        Raylib.ClearBackground(Color.BLANK); // povinné pre Raylib event loop
+                        Raylib.ClearBackground(Color.BLANK); // Raylib event loop
 
                         for (int btn = 0; btn <= (int)GamepadButton.GAMEPAD_BUTTON_RIGHT_THUMB; btn++)
                         {
                             if (Raylib.IsGamepadButtonPressed(0, (GamepadButton)btn))
                             {
-                                // Zachyť meno tlačidla
                                 string buttonName = ((GamepadButton)btn).ToString();
-                                // Musíš použiť Dispatcher, lebo si v background threade
+
                                 Application.Current.Dispatcher.Invoke(() => SetKeyForAction(buttonName));
                                 captured = true;
                                 break;
@@ -133,7 +132,7 @@ namespace GameLauncher.ViewModels
                         }
 
                         Raylib.EndDrawing();
-                        System.Threading.Thread.Sleep(10); // šetri CPU
+                        System.Threading.Thread.Sleep(10);
                     }
                 });
 
