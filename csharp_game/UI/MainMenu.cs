@@ -1,5 +1,6 @@
 using Raylib_cs;
 using VampireSurvivorsClone.Data;
+using VampireSurvivorsClone.Engine;
 
 namespace VampireSurvivorsClone.UI;
 
@@ -14,6 +15,13 @@ public class MainMenu
 
     public void Update()
     {
+        Input.UpdateInputDevice();
+
+        // Debug: vypíš či Raylib vidí gamepad
+        if (!Raylib.IsGamepadAvailable(0))
+            Raylib.DrawText("Gamepad NOT detected!", 10, 10, 20, Color.RED);
+
+        // TODO: Fix Gameplay input in Main Menu, right now only works with keyboard
         if (Input.IsActionPressed("MoveUp")) selected = (selected + 2) % 3;
         if (Input.IsActionPressed("MoveDown")) selected = (selected + 1) % 3;
 
@@ -35,7 +43,7 @@ public class MainMenu
         Raylib.BeginDrawing();
         Raylib.ClearBackground(Color.DARKGRAY);
 
-        Raylib.DrawText("VAMPIRE SURVIVORS CLONE", 400, 100, 32, Color.LIME);
+        Raylib.DrawText("VAMPIRE SURVIVORS FAN-MADE", 400, 100, 32, Color.LIME);
 
         string[] options = { "Start Game", $"Difficulty: {difficulties[selectedDifficulty]}", "Quit" };
         for (int i = 0; i < options.Length; i++)
@@ -43,6 +51,10 @@ public class MainMenu
             Color col = (i == selected) ? Color.YELLOW : Color.WHITE;
             Raylib.DrawText(options[i], 540, 250 + i * 60, 28, col);
         }
+
+        // KNOWN BUG: Raylib doesn't detect gamepad in Main Menu - FIXED - Issue was that in WPF project, the project is starting the last built version of the game
+        // Before running the WPF, Program.cs needs to be pre-built
+        //Raylib.DrawText("Gamepad not working in Main Menu! (W.I.P)", 10, 10, 20, Color.RED);
 
         Raylib.EndDrawing();
     }

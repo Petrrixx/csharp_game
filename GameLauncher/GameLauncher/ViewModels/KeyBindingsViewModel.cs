@@ -27,8 +27,16 @@ namespace GameLauncher.ViewModels
             get => _selectedInputDevice;
             set
             {
-                _selectedInputDevice = value;
-                OnPropertyChanged();
+                if (_selectedInputDevice != value)
+                {
+                    _selectedInputDevice = value;
+                    OnPropertyChanged();
+                    // Synchronizuj do všetkých KeyBindingVM
+                    foreach (var kb in KeyBindings)
+                    {
+                        kb.SelectedInputDevice = value;
+                    }
+                }
             }
         }
 
@@ -59,6 +67,14 @@ namespace GameLauncher.ViewModels
 
             _gamepadTimer = new DispatcherTimer { Interval = System.TimeSpan.FromMilliseconds(50) };
             _gamepadTimer.Tick += GamepadTimer_Tick;
+
+            if (File.Exists("gamesettings.json"))
+            {
+                var json = File.ReadAllText("gamesettings.json");
+                var settings = JsonSerializer.Deserialize<GameLauncher.Models.GameSettings>(json);
+                if (settings != null)
+                    SelectedInputDevice = settings.InputDevice;
+            }
         }
 
         private void SaveKeyBindings()
@@ -70,11 +86,15 @@ namespace GameLauncher.ViewModels
 
         private void Cancel()
         {
-            // Logic to cancel changes, napr. zavrieť okno
-            Application.Current.Windows
-                .OfType<Window>()
-                .FirstOrDefault(w => w.DataContext == this)
-                ?.Close();
+            // Zatvorí okno, ktoré hostí tento viewmodel cez UserControl
+            foreach (Window window in Application.Current.Windows)
+            {
+                if (window.Content is FrameworkElement fe && fe.DataContext == this)
+                {
+                    window.Close();
+                    return;
+                }
+            }
         }
 
         private async void StartKeyCapture(string action)
@@ -163,6 +183,7 @@ namespace GameLauncher.ViewModels
         public string Action { get; }
         private string _key;
         private string _gamepad;
+        private string _selectedInputDevice = "Keyboard";
 
         public string Key
         {
@@ -175,7 +196,20 @@ namespace GameLauncher.ViewModels
             set { _gamepad = value; OnPropertyChanged(); OnPropertyChanged(nameof(DisplayKey)); }
         }
 
-        public string DisplayKey => (App.Current?.MainWindow?.DataContext as KeyBindingsViewModel)?.SelectedInputDevice == "Gamepad" ? Gamepad : Key;
+        public string SelectedInputDevice
+        {
+            get => _selectedInputDevice;
+            set
+            {
+                if (_selectedInputDevice != value)
+                {
+                    _selectedInputDevice = value;
+                    OnPropertyChanged(nameof(DisplayKey));
+                }
+            }
+        }
+
+        public string DisplayKey => SelectedInputDevice == "Gamepad" ? Gamepad : Key;
 
         public KeyBindingVM(string action, string key, string gamepad)
         {

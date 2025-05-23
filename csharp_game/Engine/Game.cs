@@ -31,8 +31,9 @@ namespace VampireSurvivorsClone.Engine
         private DifficultyPreset preset;
         private bool isBonusWave = false;
         private bool bossDefeated = false;
-        private float bossDefeatedTimer = 0f;
+        //private float bossDefeatedTimer = 0f;
         private bool isPaused = false;
+        //private bool isBossSpawned = false;  // Track if the boss has been spawned
 
         public Game(int sizeW, int sizeH, DifficultyPreset preset)
         {
@@ -60,6 +61,9 @@ namespace VampireSurvivorsClone.Engine
 
         public void Update()
         {
+            // Auto-update current input device
+            Input.UpdateInputDevice();
+
             // Pause toggle
             if (Input.IsActionPressed("Pause") && !levelUpMenu.IsActive && !isWaveChanging)
             {
@@ -69,7 +73,7 @@ namespace VampireSurvivorsClone.Engine
             if (isPaused)
             {
                 // E = Quit Game
-                if (Input.isActionPressed("Quit"))
+                if (Input.IsActionPressed("Quit"))
                 {
                     Raylib.CloseWindow();
                     System.Environment.Exit(0);
@@ -90,31 +94,33 @@ namespace VampireSurvivorsClone.Engine
                 player.Update();
             }
 
-            // Update the game timer
-            if (isBonusWave)
-            {
-                // Handle the bonus wave
-                if (enemies.Count == 0 && !bossDefeated)
-                {
-                    // Spawn Demon King
-                    var demonKingData = EnemyData.GetEnemyData(EnemyType.DemonKing, waveNumber, preset);
-                    Vector2 bossSpawn = spawner.GetRandomSpawnPosition();
-                    enemies.Add(new Enemy(bossSpawn, demonKingData));
-                    // Ak treba, resetni hráča do stredu
-                    player.Position = new Vector2(sizeW / 2, sizeH / 2);
-                }
-                if (bossDefeated)
-                {
-                    bossDefeatedTimer -= Raylib.GetFrameTime();
-                    if (bossDefeatedTimer <= 0f)
-                    {
-                        isBonusWave = false;
-                        isWaveChanging = false;
-                    }
-                }
-                return;
-            }
 
+            //if (isBonusWave)
+            //{
+            // Handle the bonus wave
+            //    if (enemies.Count == 0 && !bossDefeated)
+            //    {
+            //        // Spawn Demon King
+            //        var demonKingData = EnemyData.GetEnemyData(EnemyType.DemonKing, waveNumber, preset);
+            //        Vector2 bossSpawn = spawner.GetRandomSpawnPosition();
+            //        enemies.Add(new Enemy(bossSpawn, demonKingData));
+            //        // Player pos reset
+            //        player.Position = new Vector2(sizeW / 2, sizeH / 2);
+            //        isBossSpawned = true;
+            //    }
+            //    if (bossDefeated)
+            //    {
+            //        bossDefeatedTimer -= Raylib.GetFrameTime();
+            //        if (bossDefeatedTimer <= 0f)
+            //        {
+            //            isBonusWave = false;
+            //           isWaveChanging = false;
+            //        }
+            //    }
+            //    return;
+            //}
+            
+            // Update the game timer
             gameTimer.Update(Raylib.GetFrameTime());
 
             // Check for wave transition (every 30 seconds)
@@ -132,21 +138,21 @@ namespace VampireSurvivorsClone.Engine
                 xpGems.Clear();
 
                 // BONUS WAVE: 5% chance to spawn Demon King
-                isBonusWave = false;
-                bossDefeated = false;
-                bossDefeatedTimer = 0f;
-                if (new Random().NextDouble() < 0.05)
-                {
-                    isBonusWave = true;
-                    // Spawn Demon King using spawner's GetRandomSpawnPosition
-                    var demonKingData = EnemyData.GetEnemyData(EnemyType.DemonKing, waveNumber, preset);
-                    Vector2 bossSpawn = spawner.GetRandomSpawnPosition();
-                    enemies.Add(new Enemy(bossSpawn, demonKingData));
-                }
-                else
-                {
-                    spawner.SpawnEnemy(waveNumber);
-                }
+                //isBonusWave = false;
+                //bossDefeated = false;
+                //bossDefeatedTimer = 0f;
+                //if (new Random().NextDouble() < 0.05)
+                //{
+                //    isBonusWave = true;
+                //    // Spawn Demon King using spawner's GetRandomSpawnPosition
+                //    var demonKingData = EnemyData.GetEnemyData(EnemyType.DemonKing, waveNumber, preset);
+                //    Vector2 bossSpawn = spawner.GetRandomSpawnPosition();
+                //    enemies.Add(new Enemy(bossSpawn, demonKingData));
+                //}
+                //else
+                //{
+                spawner.SpawnEnemy(waveNumber);
+                //}
 
                 player.Position = new Vector2(sizeW / 2, sizeH / 2);
                 DisplayWaveTransition();
@@ -326,7 +332,10 @@ namespace VampireSurvivorsClone.Engine
                 // Blur effect can be simulated with a semi-transparent rectangle
                 Raylib.DrawRectangle(0, 0, Raylib.GetScreenWidth(), Raylib.GetScreenHeight(), new Color(0, 0, 0, 180));
                 Raylib.DrawText("GAME PAUSED", 480, 300, 50, Color.YELLOW);
-                Raylib.DrawText("Press E to return to Quit Game", 420, 400, 30, Color.LIGHTGRAY);
+                if (Input.CurrentDevice == Input.InputDevice.Keyboard)
+                    Raylib.DrawText("Press E to Quit Game", 480, 400, 30, Color.LIGHTGRAY);
+                else
+                    Raylib.DrawText("Press View button to Quit Game", 420, 400, 30, Color.LIGHTGRAY);
                 Raylib.EndDrawing();
                 return;
             }

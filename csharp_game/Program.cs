@@ -39,6 +39,18 @@ public class Program
                     Raylib.ToggleFullscreen();
                 Raylib.SetTargetFPS(60);
 
+                Input.LoadKeyBindings();
+                string inputDevice = "Keyboard";
+                if (File.Exists("gamesettings.json"))
+                {
+                    var settings = JsonSerializer.Deserialize<GameSettings>(File.ReadAllText("gamesettings.json"));
+                    if (settings != null && !string.IsNullOrEmpty(settings.InputDevice))
+                    {
+                        inputDevice = settings.InputDevice;
+                    }
+                }
+                Input.CurrentDevice = inputDevice == "Gamepad" ? Input.InputDevice.Gamepad : Input.InputDevice.Keyboard;
+
                 // Main menu loop
                 var menu = new MainMenu();
                 while (!Raylib.WindowShouldClose() && !menu.StartGame)
@@ -54,14 +66,6 @@ public class Program
 
                 // Pass preset to Game
                 Game game = new Game(screenWidth, screenHeight, preset);
-                Input.LoadKeyBindings();
-                string inputDevice = "Keyboard";
-                if (File.Exists("gamesettings.json"))
-                {
-                    var settings = JsonSerializer.Deserialize<GameSettings>(File.ReadAllText("gamesettings.json"));
-                    inputDevice = settings.InputDevice;
-                }
-                Input.CurrentDevice = inputDevice == "Gamepad" ? Input.InputDevice.Gamepad : Input.InputDevice.Keyboard;
                 while (!Raylib.WindowShouldClose())
                 {
                     game.Update();

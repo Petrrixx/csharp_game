@@ -66,7 +66,7 @@ public static class Input
             float y = Raylib.GetGamepadAxisMovement(0, GamepadAxis.GAMEPAD_AXIS_LEFT_Y);
             Vector2 dir = new(x, y);
             if (dir.Length() > 0.2f) return Vector2.Normalize(dir);
-            // fallback na D-Pad
+            // fallback for D-Pad
             Vector2 dpad = Vector2.Zero;
             if (Raylib.IsGamepadButtonDown(0, GamepadButton.GAMEPAD_BUTTON_LEFT_FACE_UP)) dpad.Y -= 1;
             if (Raylib.IsGamepadButtonDown(0, GamepadButton.GAMEPAD_BUTTON_LEFT_FACE_DOWN)) dpad.Y += 1;
@@ -113,6 +113,31 @@ public static class Input
                 return Raylib.IsKeyPressed(key);
         }
         return false;
+    }
+
+    public static void UpdateInputDevice()
+    {
+        // Ak je gamepad pripojený a stlačíš tlačidlo, prepni na gamepad
+        if (Raylib.IsGamepadAvailable(0))
+        {
+            for (int btn = 0; btn <= (int)GamepadButton.GAMEPAD_BUTTON_RIGHT_THUMB; btn++)
+            {
+                if (Raylib.IsGamepadButtonPressed(0, (GamepadButton)btn))
+                {
+                    CurrentDevice = InputDevice.Gamepad;
+                    return;
+                }
+            }
+        }
+        // Ak stlačíš klávesu, prepni na keyboard
+        for (int key = 32; key < 350; key++)
+        {
+            if (Raylib.IsKeyPressed((KeyboardKey)key))
+            {
+                CurrentDevice = InputDevice.Keyboard;
+                return;
+            }
+        }
     }
 
     private class KeyBindingData

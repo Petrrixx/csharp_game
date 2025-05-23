@@ -17,8 +17,16 @@
                             <Button Content="{Binding DisplayKey, Mode=OneWay}" 
                                     Command="{Binding DataContext.SetKeyCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                     CommandParameter="{Binding Action}"
-                                    Width="120"
-                                    Tag="{Binding}" />
+                                    MinWidth="120"
+                                    MaxWidth="260"
+                                    HorizontalAlignment="Left"
+                                    Tag="{Binding}">
+                                <Button.ContentTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding}" TextTrimming="CharacterEllipsis" />
+                                    </DataTemplate>
+                                </Button.ContentTemplate>
+                            </Button>
                         </StackPanel>
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>

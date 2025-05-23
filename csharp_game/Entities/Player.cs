@@ -13,12 +13,8 @@ public class Player
         get => baseSpeed + (Agility - 1) * 20f; // Speed increases with Agility
         set => baseSpeed = value;
     }
-    private int size = 32;
-    public int SizeValue
-    {
-        get => size;
-        set => size = value;
-    }
+    private static int size = 32;
+    public static int SizeValue { get => size; }
     private float baseFireCooldown = 0.5f; // Cooldown time in seconds
     private float fireTimer = 0f; // Timer for firing projectiles
     private int health = 50; // Player's health

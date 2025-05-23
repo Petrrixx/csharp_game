@@ -34,8 +34,27 @@ namespace VampireSurvivorsClone.UI
             // Display Current Wave
             Raylib.DrawText($"Wave {waveNumber}", 10, barY + barHeight + 70, 30, Color.LIME);
 
-            // Display game timer
-            Raylib.DrawText($"Time: {Math.Ceiling(gameTimer.TimeRemaining)}", 1150, 10, 20, Color.RED);
+            // Display game timer (moved lower)
+            Raylib.DrawText($"Time: {Math.Ceiling(gameTimer.TimeRemaining)}", 1150, barY + barHeight + 70, 20, Color.RED);
+
+            // --- Inventory ---
+            int invY = barY + barHeight + 110;
+            Raylib.DrawText($"Inventory (Slots: {player.WeaponInventory.Count}/{player.MaxWeapons})", 10, invY, 20, Color.LIGHTGRAY);
+            int i = 0;
+            foreach (var weapon in player.WeaponInventory)
+            {
+                Raylib.DrawText($"{weapon.Name} (Lv.{weapon.Level})", 30, invY + 25 + i * 22, 18, Color.WHITE);
+                i++;
+            }
+
+            // --- Player stats ---
+            int statsX = 300;
+            int statsY = invY;
+            Raylib.DrawText("Player Stats:", statsX, statsY, 20, Color.LIGHTGRAY);
+            Raylib.DrawText($"Strength: {player.Strength}", statsX + 20, statsY + 25, 18, Color.WHITE);
+            Raylib.DrawText($"Agility: {player.Agility}", statsX + 20, statsY + 47, 18, Color.WHITE);
+            Raylib.DrawText($"Dexterity: {player.Dexterity}", statsX + 20, statsY + 69, 18, Color.WHITE);
+            Raylib.DrawText($"Luck: {player.Luck}", statsX + 20, statsY + 91, 18, Color.WHITE);
         }
     }
 }

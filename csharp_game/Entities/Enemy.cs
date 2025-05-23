@@ -59,7 +59,7 @@ namespace VampireSurvivorsClone.Entities
                 if (shootTimer <= 0f)
                 {
                     Vector2 dir = Vector2.Normalize(player.Position - Position);
-                    player.addProjectile(new Projectile(Position, dir, ProjectileType.Normal));
+                    //player.addProjectile(new Projectile(Position, dir, ProjectileType.Normal));
                     shootTimer = 1f; // Once every second
                 }
                 break;
@@ -70,7 +70,7 @@ namespace VampireSurvivorsClone.Entities
                     if (shootTimer <= 0f)
                     {
                         Vector2 dir = Vector2.Normalize(player.Position - Position);
-                        player.addProjectile(new Projectile(Position, dir, ProjectileType.Normal));
+                        //player.addProjectile(new Projectile(Position, dir, ProjectileType.Normal));
                         shootTimer = 4f; // 4 seconds between shots
                     }
                     break;
@@ -87,7 +87,11 @@ namespace VampireSurvivorsClone.Entities
                     // Fast, but weak
                     speed += 2f; // Common enemies are faster
                     if (speed > player.Speed)
-                        speed = player.Speed - 10; // Cap speed to Player's max speed
+                        speed = player.Speed - 40; // Cap speed to Player's max speed
+                    if (speed > 150)
+                    {
+                        speed = 150; // Cap speed to 150
+                    }
                     break;
             }
 
