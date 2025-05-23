@@ -72,6 +72,8 @@ public class Player
 
     public Vector2 FacingDirection { get; private set; } = new Vector2(0, -1);  // Default: facing upwards
 
+    public bool IsDead { get; private set; } = false;
+
     public void Update()
     {
         Vector2 direction = Input.GetMovementDirection();
@@ -91,7 +93,6 @@ public class Player
             fireTimer = FireCooldown;
         }
 
-
         // Melee attack logic
         meleeTimer -= Raylib.GetFrameTime();
         if (meleeTimer <= 0f)
@@ -99,12 +100,6 @@ public class Player
             FireMelee();
             meleeTimer = MeleeCooldown;
         }
-
-        // Update projectiles
-        //foreach (var p in projectiles)
-        //{
-        //    p.Update(Raylib.GetFrameTime());
-        //}
 
         foreach (var m in meleeAttacks)
         {
@@ -117,14 +112,8 @@ public class Player
         // Check for game over if health <= 0
         if (Health <= 0)
         {
-            // Display Game Over screen and exit
-            Raylib.BeginDrawing();
-            Raylib.ClearBackground(Color.BLACK);
-            Raylib.DrawText("GAME OVER", 520, 360, 50, Color.RED);
-            Raylib.EndDrawing();
-            System.Threading.Thread.Sleep(2000);  // Wait 2 seconds before quitting
-            Raylib.CloseWindow();  // Close the window
-            System.Environment.Exit(0);  // Exit the game
+            Health = 0;  // Ensure health isn't negative
+            IsDead = true;  // Set death flag instead of exiting
         }
 
         if (isStatBoosted)
@@ -138,6 +127,29 @@ public class Player
                 isStatBoosted = false;
             }
         }
+    }
+
+    // Reset player state for new game
+    public void Reset(DifficultyPreset preset)
+    {
+        // Center the player
+        Position = new Vector2(1280 / 2, 720 / 2);
+        
+        // Reset stats based on difficulty
+        Health = (int)preset.PlayerHealth;
+        Strength = (int)preset.PlayerStrength;
+        Agility = (int)preset.PlayerAgility;
+        Dexterity = (int)preset.PlayerDexterity;
+        Level = 1;
+        XP = 0;
+        
+        // Clear inventory and add default weapon
+        weaponInventory.Clear();
+        weaponInventory.Add(new WeaponInventoryItem { Name = "Normal Projectile", Level = 1 });
+        
+        // Reset flags
+        IsDead = false;
+        isStatBoosted = false;
     }
 
     private void FireProjectile()

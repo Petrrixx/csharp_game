@@ -8,6 +8,15 @@ using VampireSurvivorsClone.Data;
 namespace VampireSurvivorsClone.Engine;
 public static class Input
 {
+    // Path to the configuration directory
+    private static readonly string CONFIG_DIRECTORY = Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+        "VampireSurvivorsClone"
+    );
+    
+    private static readonly string KEYBINDINGS_FILE = Path.Combine(CONFIG_DIRECTORY, "keybindings.json");
+    private static readonly string GAMESETTINGS_FILE = Path.Combine(CONFIG_DIRECTORY, "gamesettings.json");
+    
     public enum InputDevice { Keyboard, Gamepad }
     private static InputDevice _currentDevice = InputDevice.Keyboard;
     public static InputDevice CurrentDevice 
@@ -18,7 +27,7 @@ public static class Input
             if (_currentDevice != value)
             {
                 _currentDevice = value;
-                // Aktualizovať nastavenie v súbore pri zmene zariadenia
+                // Update the game settings file when the input device changes
                 UpdateGameSettingsFile();
             }
         }
@@ -29,7 +38,18 @@ public static class Input
 
     static Input()
     {
+        // Uistíme sa, že adresáre existujú
+        EnsureDirectoriesExist();
         LoadKeyBindings();
+    }
+    
+    // Metóda na zabezpečenie existencie adresárov
+    private static void EnsureDirectoriesExist()
+    {
+        if (!Directory.Exists(CONFIG_DIRECTORY))
+        {
+            Directory.CreateDirectory(CONFIG_DIRECTORY);
+        }
     }
 
     // Metóda na aktualizáciu gamesettings.json
@@ -37,20 +57,17 @@ public static class Input
     {
         try
         {
-            // Správna relatívna cesta k súboru od koreňa projektu
-            string filePath = "..\\..\\..\\..\\GameLauncher\\GameLauncher\\gamesettings.json";
-            
             // Načítaj existujúce nastavenia ak existujú, inak vytvor nové
-            GameSettings settings = File.Exists(filePath) 
-                ? JsonSerializer.Deserialize<GameSettings>(File.ReadAllText(filePath)) ?? new GameSettings() 
+            GameSettings settings = File.Exists(GAMESETTINGS_FILE) 
+                ? JsonSerializer.Deserialize<GameSettings>(File.ReadAllText(GAMESETTINGS_FILE)) ?? new GameSettings() 
                 : new GameSettings();
 
             // Aktualizuj InputDevice
             settings.InputDevice = CurrentDevice == InputDevice.Gamepad ? "Gamepad" : "Keyboard";
             
-            // Ulož nastavenia jednoducho ako v Save() metóde
+            // Ulož nastavenia
             var json = JsonSerializer.Serialize(settings, new JsonSerializerOptions { WriteIndented = true });
-            File.WriteAllText(filePath, json);
+            File.WriteAllText(GAMESETTINGS_FILE, json);
         }
         catch (Exception ex)
         {
@@ -58,8 +75,10 @@ public static class Input
         }
     }
 
-    public static void LoadKeyBindings(string path = "keybindings.json")
+    public static void LoadKeyBindings(string? customPath = null)
     {
+        string path = customPath ?? KEYBINDINGS_FILE;
+        
         if (!File.Exists(path))
         {
             // Default keybindings
@@ -81,6 +100,9 @@ public static class Input
             GamepadBindings["Pause"] = GamepadButton.GAMEPAD_BUTTON_MIDDLE_RIGHT; // Menu
             GamepadBindings["Quit"] = GamepadButton.GAMEPAD_BUTTON_MIDDLE_LEFT; // View
             GamepadBindings["Back"] = GamepadButton.GAMEPAD_BUTTON_RIGHT_FACE_RIGHT; // B
+            
+            // Save default keybindings
+            SaveKeyBindings();
             return;
         }
 
@@ -92,9 +114,35 @@ public static class Input
             {
                 if (!string.IsNullOrEmpty(b.Action) && !string.IsNullOrEmpty(b.Key) && Enum.TryParse<KeyboardKey>("KEY_" + b.Key.ToUpper(), out var key))
                     KeyBindings[b.Action] = key;
+                    
                 if (!string.IsNullOrEmpty(b.Action) && !string.IsNullOrEmpty(b.Gamepad) && Enum.TryParse<GamepadButton>(b.Gamepad, out var btn))
                     GamepadBindings[b.Action] = btn;
             }
+        }
+    }
+    
+    public static void SaveKeyBindings()
+    {
+        try
+        {
+            var bindings = new List<KeyBindingData>();
+            
+            // Iterate through the key bindings and add them to the list
+            foreach (var action in KeyBindings.Keys)
+            {
+                bindings.Add(new KeyBindingData { 
+                    Action = action,
+                    Key = KeyBindings[action].ToString().Replace("KEY_", ""),
+                    Gamepad = GamepadBindings.ContainsKey(action) ? GamepadBindings[action].ToString() : ""
+                });
+            }
+            
+            var json = JsonSerializer.Serialize(bindings, new JsonSerializerOptions { WriteIndented = true });
+            File.WriteAllText(KEYBINDINGS_FILE, json);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Chyba pri ukladaní keybindings.json: {ex.Message}");
         }
     }
 

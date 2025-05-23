@@ -64,6 +64,15 @@ namespace VampireSurvivorsClone.UI
                 Raylib.DrawRectangle(400 + i * 200, y - 20, 180, 80, (i == selected) ? Color.DARKGREEN : Color.DARKGRAY);
                 Raylib.DrawText(opt.Description, 410 + i * 200, y, 20, col);
             }
+            
+            // Adaptive hint for controls
+            string controlsHint = Input.CurrentDevice == Input.InputDevice.Gamepad ? 
+                "◄►: Navigate  A: Select" : 
+                "←→: Navigate  Enter: Select";
+            int screenWidth = Raylib.GetScreenWidth();
+            int screenHeight = Raylib.GetScreenHeight();
+            int hintWidth = Raylib.MeasureText(controlsHint, 20);
+            Raylib.DrawText(controlsHint, screenWidth / 2 - hintWidth / 2, screenHeight - 50, 20, Color.GRAY);
 
             Raylib.EndDrawing();
         }

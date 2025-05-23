@@ -1,0 +1,27 @@
+{
+  "SaveName": "Save_20250523_222921",
+  "SaveDate": "2025-05-23T22:29:21.5094501+02:00",
+  "SaveVersion": "1.0",
+  "WaveNumber": 1,
+  "TimeRemaining": 21.831629,
+  "PlayerXP": 3,
+  "PlayerLevel": 1,
+  "Player": {
+    "PositionX": 631.0188,
+    "PositionY": 541.6764,
+    "Health": 66,
+    "Strength": 10,
+    "Agility": 1,
+    "Dexterity": 1,
+    "Luck": 0,
+    "PlayerLevel": 1,
+    "Weapons": [
+      {
+        "Name": "Normal Projectile",
+        "Level": 1
+      }
+    ],
+    "MaxWeapons": 8
+  },
+  "Difficulty": "Preset"
+}

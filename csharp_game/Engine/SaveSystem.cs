@@ -11,7 +11,11 @@ namespace VampireSurvivorsClone.Engine
 {
     public class SaveSystem
     {
-        private const string SAVE_DIRECTORY = "saves";
+        private static readonly string SAVE_DIRECTORY = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+            "VampireSurvivorsClone",
+            "saves"
+        );
         private const string SAVE_EXTENSION = ".json";
         
         public SaveSystem()

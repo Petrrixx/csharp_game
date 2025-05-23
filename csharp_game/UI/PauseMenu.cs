@@ -240,39 +240,61 @@ namespace VampireSurvivorsClone.UI
             int screenWidth = Raylib.GetScreenWidth();
             int screenHeight = Raylib.GetScreenHeight();
             
-            // Title
-            string title = "GAME PAUSED";
-            int titleFontSize = 40;
-            int titleWidth = Raylib.MeasureText(title, titleFontSize);
-            Raylib.DrawText(title, screenWidth / 2 - titleWidth / 2, screenHeight / 4, titleFontSize, Color.WHITE);
+            // Semi-transparent background
+            Raylib.DrawRectangle(0, 0, screenWidth, screenHeight, new Color(0, 0, 0, 150));
             
-            // Menu options
+            // Title
+            string title = "PAUSED";
+            int titleFontSize = 50;
+            int titleWidth = Raylib.MeasureText(title, titleFontSize);
+            Raylib.DrawText(title, screenWidth / 2 - titleWidth / 2, screenHeight / 6, titleFontSize, Color.WHITE);
+            
+            // Draw menu options
             for (int i = 0; i < mainMenuOptions.Count; i++)
             {
-                string option = mainMenuOptions[i];
-                int fontSize = i == selectedIndex ? 30 : 24;
-                Color color = i == selectedIndex ? Color.YELLOW : Color.WHITE;
+                int fontSize = (i == selectedIndex) ? 32 : 24;
+                Color col = (i == selectedIndex) ? Color.YELLOW : Color.WHITE;
                 
+                string option = mainMenuOptions[i];
                 int textWidth = Raylib.MeasureText(option, fontSize);
-                int posY = screenHeight / 3 + 50 + i * 50;
-                Raylib.DrawText(option, screenWidth / 2 - textWidth / 2, posY, fontSize, color);
+                int posY = screenHeight / 3 + 50 + i * 60;
+                
+                Raylib.DrawText(option, screenWidth / 2 - textWidth / 2, posY, fontSize, col);
             }
             
-            // Controls hint
+            // Controls hint - adaptive based by input device
             string controlsHint = Input.CurrentDevice == Input.InputDevice.Gamepad ? 
-                "▲▼: Navigate  A: Select  B: Back" : 
-                "W/S: Navigate  Enter: Select  Backspace: Back";
+                "▲▼: Navigate  A: Select  B: Return" : 
+                "W/S: Navigate  Enter: Select  Backspace: Return";
             int hintWidth = Raylib.MeasureText(controlsHint, 20);
             Raylib.DrawText(controlsHint, screenWidth / 2 - hintWidth / 2, screenHeight - 50, 20, Color.GRAY);
         }
         
         private void DrawSaveMenu()
         {
-            Raylib.DrawText("SAVE GAME", 540, 180, 28, Color.WHITE);
+            int screenWidth = Raylib.GetScreenWidth();
+            int screenHeight = Raylib.GetScreenHeight();
             
-            Raylib.DrawText("Press Confirm to save the game", 500, 300, 24, Color.WHITE);
+            // Semi-transparent background
+            Raylib.DrawRectangle(0, 0, screenWidth, screenHeight, new Color(0, 0, 0, 150));
             
-            Raylib.DrawText("Press Back to return", 500, 550, 18, Color.GRAY);
+            // Title
+            string title = "SAVE GAME";
+            int titleFontSize = 40;
+            int titleWidth = Raylib.MeasureText(title, titleFontSize);
+            Raylib.DrawText(title, screenWidth / 2 - titleWidth / 2, screenHeight / 6, titleFontSize, Color.WHITE);
+            
+            // Save info
+            string saveInfo = "Press confirm to save your game";
+            int infoWidth = Raylib.MeasureText(saveInfo, 30);
+            Raylib.DrawText(saveInfo, screenWidth / 2 - infoWidth / 2, screenHeight / 2 - 15, 30, Color.WHITE);
+            
+            // Controls hint - adaptive
+            string controlsHint = Input.CurrentDevice == Input.InputDevice.Gamepad ? 
+                "A: Save  B: Cancel" : 
+                "Enter: Save  Backspace: Cancel";
+            int hintWidth = Raylib.MeasureText(controlsHint, 20);
+            Raylib.DrawText(controlsHint, screenWidth / 2 - hintWidth / 2, screenHeight - 50, 20, Color.GRAY);
         }
         
         private void DrawLoadMenu()
@@ -309,7 +331,12 @@ namespace VampireSurvivorsClone.UI
                 Raylib.DrawText(saveText, screenWidth / 2 - textWidth / 2, posY, fontSize, color);
             }
             
-            Raylib.DrawText("Press Back to return", 500, 550, 18, Color.GRAY);
+            // Controls hint - adaptive
+            string controlsHint = Input.CurrentDevice == Input.InputDevice.Gamepad ? 
+                "▲▼: Navigate  A: Select  B: Cancel" : 
+                "W/S: Navigate  Enter: Select  Backspace: Cancel";
+            int hintWidth = Raylib.MeasureText(controlsHint, 20);
+            Raylib.DrawText(controlsHint, screenWidth / 2 - hintWidth / 2, screenHeight - 50, 20, Color.GRAY);
         }
         
         private void DrawQuitMenu()
@@ -335,7 +362,12 @@ namespace VampireSurvivorsClone.UI
                 Raylib.DrawText(option, screenWidth / 2 - textWidth / 2, posY, fontSize, color);
             }
             
-            Raylib.DrawText("Press Back to return", 500, 550, 18, Color.GRAY);
+            // Controls hint - adaptive
+            string controlsHint = Input.CurrentDevice == Input.InputDevice.Gamepad ? 
+                "▲▼: Navigate  A: Select  B: Cancel" : 
+                "W/S: Navigate  Enter: Select  Backspace: Cancel";
+            int hintWidth = Raylib.MeasureText(controlsHint, 20);
+            Raylib.DrawText(controlsHint, screenWidth / 2 - hintWidth / 2, screenHeight - 50, 20, Color.GRAY);
         }
     }
 }

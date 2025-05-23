@@ -1,4 +1,4 @@
-@startuml
+@startuml VampireSurvivorsFanMade
 !include .\\csharp_game\Program.puml
 !include .\\csharp_game\Data\CharacterData.puml
 !include .\\csharp_game\Data\EnemyType.puml

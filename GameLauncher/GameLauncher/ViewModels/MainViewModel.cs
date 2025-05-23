@@ -77,9 +77,20 @@ namespace GameLauncher.ViewModels
 
         private void StartGame()
         {
+            // Path to the game settings file
+            string configDirectory = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                "VampireSurvivorsClone"
+            );
+            string gamesettingsPath = Path.Combine(configDirectory, "gamesettings.json");
+            
+            // Load settings
             GameSettings? settings = null;
-            if (File.Exists("gamesettings.json"))
+            if (File.Exists(gamesettingsPath))
+                settings = JsonSerializer.Deserialize<GameSettings>(File.ReadAllText(gamesettingsPath));
+            else if (File.Exists("gamesettings.json")) // Backup plan
                 settings = JsonSerializer.Deserialize<GameSettings>(File.ReadAllText("gamesettings.json"));
+            
             if (settings == null)
                 settings = new GameSettings(); // default
 
@@ -90,10 +101,14 @@ namespace GameLauncher.ViewModels
 
             var psi = new ProcessStartInfo
             {
-                FileName = @"..\..\csharp_game\bin\Debug\net9.0\csharp_game.exe",
+                FileName = Path.GetFullPath(Path.Combine(
+                    AppDomain.CurrentDomain.BaseDirectory, 
+                    @"..\..\..\..\..\csharp_game\bin\Debug\net9.0\csharp_game.exe"
+                )),
                 Arguments = $"{difficulty} {width} {height} {(fullscreen ? "fullscreen" : "windowed")}",
                 UseShellExecute = false
             };
+                        
             Process.Start(psi);
 
             Application.Current.Shutdown(); // close the launcher

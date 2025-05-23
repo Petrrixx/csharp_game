@@ -34,16 +34,24 @@ public class Program
                 if (args.Length >= 4)
                     fullscreen = args[3].ToLower() == "fullscreen";
 
-                Raylib.InitWindow(screenWidth, screenHeight, "Vampire Survivors Clone");
+                Raylib.InitWindow(screenWidth, screenHeight, "Vampire Survivors Fan-Made");
                 if (fullscreen)
                     Raylib.ToggleFullscreen();
                 Raylib.SetTargetFPS(60);
 
+                // Load key settings
                 Input.LoadKeyBindings();
+
+                string configDirectory = Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                    "VampireSurvivorsClone"
+                );
+                string gamesettingsPath = Path.Combine(configDirectory, "gamesettings.json");
+
                 string inputDevice = "Keyboard";
-                if (File.Exists("gamesettings.json"))
+                if (File.Exists(gamesettingsPath))
                 {
-                    var settings = JsonSerializer.Deserialize<GameSettings>(File.ReadAllText("gamesettings.json"));
+                    var settings = JsonSerializer.Deserialize<GameSettings>(File.ReadAllText(gamesettingsPath));
                     if (settings != null && !string.IsNullOrEmpty(settings.InputDevice))
                     {
                         inputDevice = settings.InputDevice;
@@ -99,10 +107,34 @@ public class Program
                 {
                     game.Update();
                     
+                    // Handle Game Over results
+                    if (game.ShouldStartNewGame)
+                    {
+                        // Restart the game with a new game setup (choose difficulty)
+                        returningToMainMenu = true;
+                        loadingScreen.ShowForDuration(1.0f);
+                        continue;
+                    }
+                    
+                    if (game.ShouldLoadGame)
+                    {
+                        // Return to main menu to load game
+                        returningToMainMenu = true;
+                        loadingScreen.ShowForDuration(1.0f);
+                        continue;
+                    }
+                    
+                    if (game.ShouldReturnToMainMenu)
+                    {
+                        returningToMainMenu = true;
+                        loadingScreen.ShowForDuration(1.0f);
+                        continue;
+                    }
+                    
                     if (game.PauseMenu != null && game.PauseMenu.ShouldQuitToMenu)
                     {
                         returningToMainMenu = true;
-                        loadingScreen.ShowForDuration(1.0f); // Show Loading Screen
+                        loadingScreen.ShowForDuration(1.0f);
                         continue;
                     }
                     

@@ -33,9 +33,8 @@ namespace VampireSurvivorsClone.Engine
         //private bool bossDefeated = false;
         //private float bossDefeatedTimer = 0f;
         private bool isPaused = false;
-        //private bool isBossSpawned = false;  // Track if the boss has been spawned
-
-        // Add these properties to expose needed information
+        private bool isGameOver = false;
+        private GameOverMenu gameOverMenu;
         public int CurrentWave => waveNumber;
         public int PlayerLevel => player.Level;
         public int PlayerXP { get => playerXP; set => playerXP = value; }
@@ -67,8 +66,9 @@ namespace VampireSurvivorsClone.Engine
             // Initial wave setup
             spawner.SpawnEnemy(waveNumber);
 
-            // Initialize pause menu
+            // Initialize menus
             pauseMenu = new PauseMenu(this);
+            gameOverMenu = new GameOverMenu(); // Inicializácia Game Over menu
         }
 
         // Method for SaveSystem to set wave number when loading
@@ -76,11 +76,28 @@ namespace VampireSurvivorsClone.Engine
 
         // Method to clear player weapons when loading a save
         public void ClearPlayerWeapons() => player.ClearWeapons();
+        public bool IsGameOver => isGameOver;
+        public bool ShouldStartNewGame { get; private set; } = false;
+        public bool ShouldLoadGame { get; private set; } = false;
+        public bool ShouldReturnToMainMenu { get; private set; } = false;
 
         public void Update()
         {
             // Auto-update current input device
             Input.UpdateInputDevice();
+
+            // Check for game over state
+            if (player.IsDead && !isGameOver)
+            {
+                isGameOver = true;
+            }
+
+            // Handle game over state
+            if (isGameOver)
+            {
+                HandleGameOver();
+                return;
+            }
 
             // Pause toggle
             if (Input.IsActionPressed("Pause") && !levelUpMenu.IsActive && !isWaveChanging)
@@ -349,8 +366,61 @@ namespace VampireSurvivorsClone.Engine
             }
         }
 
+        // Game Over handling
+        private void HandleGameOver()
+        {
+            gameOverMenu.Update();
+            
+            if (gameOverMenu.ReturnToMainMenuSelected)
+            {
+                ShouldReturnToMainMenu = true;
+                isGameOver = false;
+            }
+            else if (gameOverMenu.QuitGameSelected)
+            {
+                Raylib.CloseWindow();
+                System.Environment.Exit(0);
+            }
+        }
+
+        public void Reset(DifficultyPreset preset)
+        {
+            this.preset = preset;
+            
+            // Reset player
+            player.Reset(preset);
+            
+            // Reset game state
+            waveNumber = 1;
+            playerXP = 0;
+            spawnChance = 0.1f;
+            spawnInterval = 1f;
+            isWaveChanging = false;
+            isPaused = false;
+            isGameOver = false;
+            ShouldStartNewGame = false;
+            ShouldLoadGame = false;
+            ShouldReturnToMainMenu = false;
+            
+            // Reset timer
+            gameTimer.Reset(30f);
+            
+            // Clear entities
+            enemies.Clear();
+            xpGems.Clear();
+            
+            // Create initial enemy
+            spawner.SpawnEnemy(waveNumber);
+        }
+
         public void Draw()
         {
+            if (isGameOver)
+            {
+                gameOverMenu.Draw();
+                return;
+            }
+
             if (levelUpMenu.IsActive)
             {
                 levelUpMenu.Draw();

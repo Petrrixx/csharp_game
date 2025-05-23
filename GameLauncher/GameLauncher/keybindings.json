@@ -1,1 +1,42 @@
-[{"Action":"MoveUp","Key":"W","Gamepad":"GAMEPAD_BUTTON_LEFT_FACE_UP"},{"Action":"MoveDown","Key":"S","Gamepad":"GAMEPAD_BUTTON_LEFT_FACE_DOWN"},{"Action":"MoveLeft","Key":"A","Gamepad":"GAMEPAD_BUTTON_LEFT_FACE_LEFT"},{"Action":"MoveRight","Key":"D","Gamepad":"GAMEPAD_BUTTON_LEFT_FACE_RIGHT"},{"Action":"Confirm","Key":"Enter","Gamepad":"GAMEPAD_BUTTON_RIGHT_FACE_DOWN"},{"Action":"Pause","Key":"P","Gamepad":"GAMEPAD_BUTTON_MIDDLE_RIGHT"},{"Action":"Quit","Key":"Escape","Gamepad":"GAMEPAD_BUTTON_MIDDLE_LEFT"}]
+[
+  {
+    "Action": "MoveUp",
+    "Key": "W",
+    "Gamepad": "GAMEPAD_BUTTON_LEFT_FACE_UP"
+  },
+  {
+    "Action": "MoveDown",
+    "Key": "S",
+    "Gamepad": "GAMEPAD_BUTTON_LEFT_FACE_DOWN"
+  },
+  {
+    "Action": "MoveLeft",
+    "Key": "A",
+    "Gamepad": "GAMEPAD_BUTTON_LEFT_FACE_LEFT"
+  },
+  {
+    "Action": "MoveRight",
+    "Key": "D",
+    "Gamepad": "GAMEPAD_BUTTON_LEFT_FACE_RIGHT"
+  },
+  {
+    "Action": "Confirm",
+    "Key": "Enter",
+    "Gamepad": "GAMEPAD_BUTTON_RIGHT_FACE_DOWN"
+  },
+  {
+    "Action": "Pause",
+    "Key": "P",
+    "Gamepad": "GAMEPAD_BUTTON_MIDDLE_RIGHT"
+  },
+  {
+    "Action": "Quit",
+    "Key": "Escape",
+    "Gamepad": "GAMEPAD_BUTTON_MIDDLE_LEFT"
+  },
+  {
+    "Action": "Back",
+    "Key": "Backspace",
+    "Gamepad": "GAMEPAD_BUTTON_RIGHT_FACE_RIGHT"
+  }
+]

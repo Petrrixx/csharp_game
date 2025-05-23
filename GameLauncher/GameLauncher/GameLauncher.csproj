@@ -12,4 +12,8 @@
     <PackageReference Include="Raylib-cs" Version="4.5.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Resource Include="Resources\VampireSurvivorsClone.jpg" />
+  </ItemGroup>
+
 </Project>

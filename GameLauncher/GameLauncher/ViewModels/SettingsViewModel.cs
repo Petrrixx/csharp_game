@@ -71,8 +71,28 @@ namespace GameLauncher.ViewModels
 
         private void Save()
         {
-            var json = JsonSerializer.Serialize(GameSettings);
+            // Path to the configuration directory
+            string configDirectory = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                "VampireSurvivorsClone"
+            );
+            
+            // Create the directory if it doesn't exist
+            if (!Directory.Exists(configDirectory))
+            {
+                Directory.CreateDirectory(configDirectory);
+            }
+            
+            // Path location to gamesettings.json
+            string gamesettingsPath = Path.Combine(configDirectory, "gamesettings.json");
+            
+            // Serialize and save
+            var json = JsonSerializer.Serialize(GameSettings, new JsonSerializerOptions { WriteIndented = true });
+            File.WriteAllText(gamesettingsPath, json);
+            
+            // Backwards compatibility
             File.WriteAllText("gamesettings.json", json);
+            
             CloseWindow();
         }
 

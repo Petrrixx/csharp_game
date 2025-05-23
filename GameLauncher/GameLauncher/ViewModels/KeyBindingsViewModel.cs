@@ -31,7 +31,7 @@ namespace GameLauncher.ViewModels
                 {
                     _selectedInputDevice = value;
                     OnPropertyChanged();
-                    // Synchronizuj do všetkých KeyBindingVM
+                    // Synchronize for all KeyBindingVM
                     foreach (var kb in KeyBindings)
                     {
                         kb.SelectedInputDevice = value;
@@ -58,7 +58,8 @@ namespace GameLauncher.ViewModels
                 new KeyBindingVM("MoveRight", "D", "GAMEPAD_BUTTON_LEFT_FACE_RIGHT"),
                 new KeyBindingVM("Confirm", "Enter", "GAMEPAD_BUTTON_RIGHT_FACE_DOWN"),
                 new KeyBindingVM("Pause", "P", "GAMEPAD_BUTTON_MIDDLE_RIGHT"),
-                new KeyBindingVM("Quit", "Escape", "GAMEPAD_BUTTON_MIDDLE_LEFT")
+                new KeyBindingVM("Quit", "Escape", "GAMEPAD_BUTTON_MIDDLE_LEFT"),
+                new KeyBindingVM("Back", "Backspace", "GAMEPAD_BUTTON_RIGHT_FACE_RIGHT")
             };
 
             SaveCommand = new RelayCommand(_ => SaveKeyBindings());
@@ -79,8 +80,26 @@ namespace GameLauncher.ViewModels
 
         private void SaveKeyBindings()
         {
-            // Save keybindings to JSON
-            var json = JsonSerializer.Serialize(KeyBindings.Select(k => k.ToModel()).ToList());
+            string configDirectory = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                "VampireSurvivorsClone"
+            );
+            
+            if (!Directory.Exists(configDirectory))
+            {
+                Directory.CreateDirectory(configDirectory);
+            }
+            
+            // Path location to keybindings.json AppData/Romaing/VampireSurvivorsClone
+            string keybindingsPath = Path.Combine(configDirectory, "keybindings.json");
+            
+            // Serialize and save
+            var json = JsonSerializer.Serialize(KeyBindings.Select(k => k.ToModel()).ToList(), 
+                new JsonSerializerOptions { WriteIndented = true });
+                
+            File.WriteAllText(keybindingsPath, json);
+            
+            // Backwards compatibility
             File.WriteAllText("keybindings.json", json);
         }
 

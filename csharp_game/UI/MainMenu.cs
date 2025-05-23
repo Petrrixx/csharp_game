@@ -141,14 +141,22 @@ public class MainMenu
 
     private void UpdateDifficultySelection()
     {
-        if (Input.IsActionPressed("MoveUp") || Input.IsActionPressed("MoveDown")) 
+        if (Input.IsActionPressed("MoveUp")) 
+        {
+            selectedDifficulty = (selectedDifficulty + difficulties.Length - 1) % difficulties.Length;
+            selected = selectedDifficulty; // Synchronized selected with selectedDifficulty
+        }
+        
+        if (Input.IsActionPressed("MoveDown")) 
         {
             selectedDifficulty = (selectedDifficulty + 1) % difficulties.Length;
+            selected = selectedDifficulty; 
         }
         
         if (Input.IsActionPressed("MoveLeft") || Input.IsActionPressed("MoveRight"))
         {
             selectedDifficulty = (selectedDifficulty + difficulties.Length - 1) % difficulties.Length;
+            selected = selectedDifficulty; 
         }
         
         if (Input.IsActionPressed("Confirm"))
@@ -156,11 +164,10 @@ public class MainMenu
             StartGame = true;
         }
         
-        // Return to main menu on cancel
-        if (Input.IsActionPressed("Quit"))
+        if (Input.IsActionPressed("Back") || Input.IsActionPressed("Quit"))
         {
             currentState = MenuState.MainMenu;
-            selected = 0;
+            selected = saveFiles.Count > 0 ? 1 : 0; // Return to New Game option if no saves
         }
     }
 
@@ -200,8 +207,9 @@ public class MainMenu
 
     private void UpdateSaveDetails()
     {
-        if (Input.IsActionPressed("MoveLeft") || Input.IsActionPressed("MoveRight")) 
-            selected = (selected + 1) % 2; // Toggle between Load and Delete options
+        // Select
+        if (!deleteSaveMode && (Input.IsActionPressed("MoveLeft") || Input.IsActionPressed("MoveRight")))
+            selected = (selected + 1) % 2; // Toggle between Load and Delete options only when not in delete mode
         
         if (deleteSaveMode)
         {
@@ -216,10 +224,10 @@ public class MainMenu
                     // Delete the save file
                     if (selectedSaveIndex < saveFiles.Count)
                     {
-                        // Implement Delete functionality
-                        // saveSystem.DeleteSave(saveFiles[selectedSaveIndex].SaveName);
+                        // Delete functionality
+                        saveSystem.DeleteSave(saveFiles[selectedSaveIndex].SaveName);
                         
-                        // For now, just refresh the save list
+                        // Refresh the save list
                         RefreshSaveFiles();
                     }
                     
@@ -235,7 +243,8 @@ public class MainMenu
                 }
             }
             
-            if (Input.IsActionPressed("Quit"))
+            // Support for both Back and Quit
+            if (Input.IsActionPressed("Back") || Input.IsActionPressed("Quit"))
             {
                 deleteSaveMode = false;
                 selected = 1; // Set back to Delete button
@@ -257,8 +266,8 @@ public class MainMenu
                 }
             }
             
-            // Return to load game menu on cancel
-            if (Input.IsActionPressed("Quit"))
+            // Return to load game menu on cancel - Back
+            if (Input.IsActionPressed("Back") || Input.IsActionPressed("Quit"))
             {
                 currentState = MenuState.LoadGameMenu;
                 selected = selectedSaveIndex;
@@ -269,10 +278,7 @@ public class MainMenu
     public void Draw()
     {
         Raylib.BeginDrawing();
-        Raylib.ClearBackground(Color.DARKGRAY);
-
-        // Draw the title
-        Raylib.DrawText("VAMPIRE SURVIVORS FAN-MADE", 400, 60, 32, Color.LIME);
+        Raylib.ClearBackground(new Color(20, 20, 30, 255));
 
         // Draw the appropriate menu based on state
         switch (currentState)
@@ -299,6 +305,15 @@ public class MainMenu
 
     private void DrawMainMenu()
     {
+        int screenWidth = Raylib.GetScreenWidth();
+        int screenHeight = Raylib.GetScreenHeight();
+        
+        // Title
+        string title = "VAMPIRE SURVIVORS FAN-MADE";
+        int titleFontSize = 40;
+        int titleWidth = Raylib.MeasureText(title, titleFontSize);
+        Raylib.DrawText(title, screenWidth / 2 - titleWidth / 2, screenHeight / 6, titleFontSize, Color.LIME);
+        
         // Create option list based on available saves
         List<string> options = new();
         
@@ -311,11 +326,17 @@ public class MainMenu
         options.Add("Load Game");
         options.Add("Quit Game");
         
-        // Draw options
+        // Draw options with improved styling
         for (int i = 0; i < options.Count; i++)
         {
+            int fontSize = (i == selected) ? 32 : 24; // Larger font for selected item
             Color col = (i == selected) ? Color.YELLOW : Color.WHITE;
-            Raylib.DrawText(options[i], 540, 250 + i * 60, 28, col);
+            
+            string option = options[i];
+            int textWidth = Raylib.MeasureText(option, fontSize);
+            int posY = screenHeight / 3 + 50 + i * 60;
+            
+            Raylib.DrawText(option, screenWidth / 2 - textWidth / 2, posY, fontSize, col);
         }
         
         // If "Continue" is selected, show info about the latest save
@@ -323,35 +344,78 @@ public class MainMenu
         {
             var latestSave = saveFiles.First();
             string saveInfo = $"Last save: {latestSave.SaveDate.ToShortDateString()} {latestSave.SaveDate.ToShortTimeString()} - Wave: {latestSave.WaveNumber} - Level: {latestSave.PlayerLevel}";
-            Raylib.DrawText(saveInfo, 400, 550, 16, Color.LIGHTGRAY);
+            int infoWidth = Raylib.MeasureText(saveInfo, 16);
+            Raylib.DrawText(saveInfo, screenWidth / 2 - infoWidth / 2, screenHeight - 100, 16, Color.LIGHTGRAY);
         }
+        
+        // Controls hint at the bottom
+        string controlsHint = Input.CurrentDevice == Input.InputDevice.Gamepad ? 
+            "▲▼: Navigate  A: Select  B: Back" : 
+            "W/S: Navigate  Enter: Select  Backspace: Back";
+        int hintWidth = Raylib.MeasureText(controlsHint, 20);
+        Raylib.DrawText(controlsHint, screenWidth / 2 - hintWidth / 2, screenHeight - 50, 20, Color.GRAY);
     }
 
     private void DrawDifficultySelection()
     {
-        Raylib.DrawText("SELECT DIFFICULTY", 500, 180, 28, Color.WHITE);
+        int screenWidth = Raylib.GetScreenWidth();
+        int screenHeight = Raylib.GetScreenHeight();
         
+        // Title
+        string title = "SELECT DIFFICULTY";
+        int titleFontSize = 40;
+        int titleWidth = Raylib.MeasureText(title, titleFontSize);
+        Raylib.DrawText(title, screenWidth / 2 - titleWidth / 2, screenHeight / 6, titleFontSize, Color.WHITE);
+        
+        // Draw difficulty options
         for (int i = 0; i < difficulties.Length; i++)
         {
-            Color col = (i == selected) ? Color.YELLOW : Color.WHITE;
-            Raylib.DrawText(difficulties[i].ToString(), 540, 250 + i * 60, 28, col);
+            int fontSize = (i == selectedDifficulty) ? 32 : 24;
+            Color col = (i == selectedDifficulty) ? Color.YELLOW : Color.WHITE;
+            
+            string option = difficulties[i].ToString();
+            int textWidth = Raylib.MeasureText(option, fontSize);
+            int posY = screenHeight / 3 + 50 + i * 60;
+            
+            Raylib.DrawText(option, screenWidth / 2 - textWidth / 2, posY, fontSize, col);
         }
         
-        Raylib.DrawText("Press ESC to go back", 500, 550, 18, Color.GRAY);
+        // Controls hint
+        string hint = Input.CurrentDevice == Input.InputDevice.Gamepad ? 
+            "B: Return" : 
+            "Backspace: Return";
+        int hintWidth = Raylib.MeasureText(hint, 20);
+        Raylib.DrawText(hint, screenWidth / 2 - hintWidth / 2, screenHeight - 50, 20, Color.GRAY);
     }
 
     private void DrawLoadGameMenu()
     {
-        Raylib.DrawText("LOAD GAME", 540, 180, 28, Color.WHITE);
+        int screenWidth = Raylib.GetScreenWidth();
+        int screenHeight = Raylib.GetScreenHeight();
+        
+        // Title
+        string title = "LOAD GAME";
+        int titleFontSize = 40;
+        int titleWidth = Raylib.MeasureText(title, titleFontSize);
+        Raylib.DrawText(title, screenWidth / 2 - titleWidth / 2, screenHeight / 6, titleFontSize, Color.WHITE);
         
         if (saveFiles.Count == 0)
         {
-            Raylib.DrawText("No save files found!", 500, 300, 24, Color.GRAY);
-            Raylib.DrawText("Press any key to go back", 500, 350, 18, Color.GRAY);
+            string noSaves = "No save files found!";
+            int textWidth = Raylib.MeasureText(noSaves, 28);
+            Raylib.DrawText(noSaves, screenWidth / 2 - textWidth / 2, screenHeight / 2, 28, Color.GRAY);
+            
+            // Adaptívny hint
+            string hint = Input.CurrentDevice == Input.InputDevice.Gamepad ? 
+                "Press any button to go back" : 
+                "Press any key to go back";
+            int hintWidth2 = Raylib.MeasureText(hint, 20);
+            Raylib.DrawText(hint, screenWidth / 2 - hintWidth2 / 2, screenHeight - 50, 20, Color.GRAY);
             return;
         }
         
-        int yStart = 250;
+        // Draw save files list
+        int yStart = screenHeight / 3;
         int spacing = 40;
         
         for (int i = 0; i < saveFiles.Count; i++)
@@ -359,57 +423,93 @@ public class MainMenu
             var save = saveFiles[i];
             string saveText = $"{save.SaveDate.ToShortDateString()} {save.SaveDate.ToShortTimeString()} - Wave: {save.WaveNumber} - Level: {save.PlayerLevel}";
             
+            int fontSize = (i == selected) ? 24 : 20;
             Color col = (i == selected) ? Color.YELLOW : Color.WHITE;
-            Raylib.DrawText(saveText, 400, yStart + i * spacing, 20, col);
+            
+            int textWidth = Raylib.MeasureText(saveText, fontSize);
+            Raylib.DrawText(saveText, screenWidth / 2 - textWidth / 2, yStart + i * spacing, fontSize, col);
         }
         
-        Raylib.DrawText("Press Back to return", 500, 550, 18, Color.GRAY);
+        // Controls hint - adaptívne podľa typu ovládania
+        string controlsHint = Input.CurrentDevice == Input.InputDevice.Gamepad ? 
+            "B: Return" : 
+            "Backspace: Return";
+        int hintWidth = Raylib.MeasureText(controlsHint, 20);
+        Raylib.DrawText(controlsHint, screenWidth / 2 - hintWidth / 2, screenHeight - 50, 20, Color.GRAY);
     }
 
     private void DrawSaveDetails()
     {
+        int screenWidth = Raylib.GetScreenWidth();
+        int screenHeight = Raylib.GetScreenHeight();
+        
         if (selectedSaveIndex >= saveFiles.Count) return;
         
         var save = saveFiles[selectedSaveIndex];
         
-        Raylib.DrawText("SAVE DETAILS", 540, 180, 28, Color.WHITE);
+        // Title
+        string title = "SAVE DETAILS";
+        int titleFontSize = 40;
+        int titleWidth = Raylib.MeasureText(title, titleFontSize);
+        Raylib.DrawText(title, screenWidth / 2 - titleWidth / 2, screenHeight / 6, titleFontSize, Color.WHITE);
         
-        int yPos = 230;
-        Raylib.DrawText($"Date: {save.SaveDate.ToString()}", 400, yPos, 20, Color.WHITE); yPos += 30;
-        Raylib.DrawText($"Wave: {save.WaveNumber}", 400, yPos, 20, Color.WHITE); yPos += 30;
-        Raylib.DrawText($"Player Level: {save.PlayerLevel}", 400, yPos, 20, Color.WHITE); yPos += 30;
-        Raylib.DrawText($"Difficulty: {save.Difficulty}", 400, yPos, 20, Color.WHITE); yPos += 30;
+        // Save details
+        int centerX = screenWidth / 2;
+        int yPos = screenHeight / 3;
+        int spacing = 30;
+        
+        Raylib.DrawText($"Date: {save.SaveDate.ToString()}", centerX - 200, yPos, 20, Color.WHITE); yPos += spacing;
+        Raylib.DrawText($"Wave: {save.WaveNumber}", centerX - 200, yPos, 20, Color.WHITE); yPos += spacing;
+        Raylib.DrawText($"Player Level: {save.PlayerLevel}", centerX - 200, yPos, 20, Color.WHITE); yPos += spacing;
         
         if (save.Player != null)
         {
-            Raylib.DrawText($"Health: {save.Player.Health}", 400, yPos, 20, Color.WHITE); yPos += 30;
-            Raylib.DrawText($"Strength: {save.Player.Strength}", 400, yPos, 20, Color.WHITE); yPos += 30;
-            Raylib.DrawText($"Weapons: {save.Player.Weapons.Count}", 400, yPos, 20, Color.WHITE); yPos += 30;
+            Raylib.DrawText($"Health: {save.Player.Health}", centerX - 200, yPos, 20, Color.WHITE); yPos += spacing;
+            Raylib.DrawText($"Strength: {save.Player.Strength}", centerX - 200, yPos, 20, Color.WHITE); yPos += spacing;
+            Raylib.DrawText($"Weapons: {save.Player.Weapons.Count}", centerX - 200, yPos, 20, Color.WHITE); yPos += spacing;
         }
         
-        yPos = 450;
+        yPos = screenHeight / 2 + 100;
         
         if (deleteSaveMode)
         {
-            Raylib.DrawText("Are you sure you want to delete this save?", 400, yPos, 20, Color.RED);
+            string deleteConfirm = "Are you sure you want to delete this save?";
+            int confirmWidth = Raylib.MeasureText(deleteConfirm, 24);
+            Raylib.DrawText(deleteConfirm, screenWidth / 2 - confirmWidth / 2, yPos, 24, Color.RED);
             
             string[] options = { "Yes", "No" };
+            yPos += 50;
+            
             for (int i = 0; i < options.Length; i++)
             {
+                int fontSize = (i == selected) ? 32 : 24;
                 Color col = (i == selected) ? Color.YELLOW : Color.WHITE;
-                Raylib.DrawText(options[i], 500 + i * 100, yPos + 40, 24, col);
+                
+                int width = Raylib.MeasureText(options[i], fontSize);
+                int x = screenWidth / 2 - 80 + i * 160;
+                Raylib.DrawText(options[i], x - width / 2, yPos, fontSize, col);
             }
         }
         else
         {
             string[] options = { "Load Save", "Delete Save" };
+            
             for (int i = 0; i < options.Length; i++)
             {
+                int fontSize = (i == selected) ? 32 : 24;
                 Color col = (i == selected) ? Color.YELLOW : Color.WHITE;
-                Raylib.DrawText(options[i], 450 + i * 200, yPos, 24, col);
+                
+                int width = Raylib.MeasureText(options[i], fontSize);
+                int x = screenWidth / 2 - 150 + i * 300;
+                Raylib.DrawText(options[i], x - width / 2, yPos, fontSize, col);
             }
         }
         
-        Raylib.DrawText("Press Back to return", 500, 550, 18, Color.GRAY);
+        // Controls hint
+        string hint = Input.CurrentDevice == Input.InputDevice.Gamepad ? 
+            "B: Return" : 
+            "Backspace: Return";
+        int hintWidth = Raylib.MeasureText(hint, 20);
+        Raylib.DrawText(hint, screenWidth / 2 - hintWidth / 2, screenHeight - 50, 20, Color.GRAY);
     }
 }
